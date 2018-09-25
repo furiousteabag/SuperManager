@@ -751,7 +751,7 @@ namespace SPBU12._1MANAGER
         //Выбор алгоритма сжатия
         private void WhichCompress(string sourceFile, string compressedFile)
         {
-            Compress(sourceFile, compressedFile);
+            InitializeAsyncCompress(sourceFile, compressedFile);
         }
         //Инициализация асинхронного сжатия
         private async void InitializeAsyncCompress(string sourceFile, string compressedFile)
@@ -869,11 +869,8 @@ namespace SPBU12._1MANAGER
         private void WhichSearch(string path, StreamWriter file)
         {
             // Task.Factory.StartNew(() => SearhParallels(path, file));
-            InitializeAsyncSearch(path, file);
+            SearhParallels(path, file);
         }
-
-
-        
         //Инициализация асинхронного поиска
         private async void InitializeAsyncSearch(string path, StreamWriter file)
         {
@@ -938,178 +935,181 @@ namespace SPBU12._1MANAGER
         //Асинхронный поиск образца
         private Task SearhAsync(string path, StreamWriter file)
         {
-
             return Task.Run(() =>
+            {
+                Action action = () =>
+                {
+                    try
+                    {
+
+                        DirectoryInfo di = new DirectoryInfo(path);
+                        DirectoryInfo[] directories = di.GetDirectories();
+                        FileInfo[] files = di.GetFiles();
+
+                        Parallel.ForEach(directories, (info) =>
+                        {
+
+                            Task.Factory.StartNew(() =>
+                            {
+                                SearhParallels(info.FullName, file);
+
+                            });
+
+                        });
+
+                        Parallel.ForEach(files, (currentFile) =>
+                        {
+                            try
+                            {
+                                byte[] b = File.ReadAllBytes(currentFile.FullName);
+
+                                UTF8Encoding temp = new UTF8Encoding(true);
+                                Regex[] r = new Regex[4];
+                                r[0] = new Regex(@"[-a-f0-9_.]+@{1}[-0-9a-z]+\.[a-z]{2,5}");
+                                r[1] = new Regex(@"\d{4}\s\d{6}");
+                                r[2] = new Regex(@"[a-zA-Z1-9\-\._]+@[a-z1-9]+(.[a-z1-9]+){1,}");
+                                r[3] = new Regex(@"(8|\+7)([\-\s])?(\(?\d{3}\)?[\-\s])?[\d\-\s]{7,20}");
+
+                                string str;
+
+                                for (int i = 0; i < 4; i++)
+                                    foreach (Match m in r[i].Matches(temp.GetString(b)))
+                                    {
+                                        str = m.ToString();
+                                        file.WriteLine(str);
+                                    }
+
+                            }
+                            catch { }
+                        });
+                    }
+                    catch { }
+                };
+                Invoke(action);
+            });
+        }
+
+        //Непосредственно поиск образца через потоки
+        private void SearhThread(string path, StreamWriter file)
+        {
+            Queue<string>[] queue = new Queue<string>[Environment.ProcessorCount];
+            for (int i = 0; i < Environment.ProcessorCount; i++)
+                queue[i] = new Queue<string>();
+
+            AllFiles(queue, path, file);
+
+            QueueProcessor[] proc = new QueueProcessor[Environment.ProcessorCount];
+            for (int i = 0; i < Environment.ProcessorCount; i++)
             {
                 try
                 {
-                    DirectoryInfo di = new DirectoryInfo(path);
-                    DirectoryInfo[] directories = di.GetDirectories();
-                    FileInfo[] files = di.GetFiles();
-
-                    foreach (DirectoryInfo info in directories)
-                    {
-                        Task.Factory.StartNew(() =>
-                        {
-                             SearhAsync(info.FullName, file);
-                        });
-                    };
-
-
-                    foreach (FileInfo currentFile in files)
-                    {
-                        try
-                        {
-
-                            byte[] b = File.ReadAllBytes(currentFile.FullName);
-
-                            UTF8Encoding temp = new UTF8Encoding(true);
-                            Regex[] r = new Regex[4];
-                            r[0] = new Regex(@"[-a-f0-9_.]+@{1}[-0-9a-z]+\.[a-z]{2,5}");
-                            r[1] = new Regex(@"\d{4}\s\d{6}");
-                            r[2] = new Regex(@"[a-zA-Z1-9\-\._]+@[a-z1-9]+(.[a-z1-9]+){1,}");
-                            r[3] = new Regex(@"(8|\+7)([\-\s])?(\(?\d{3}\)?[\-\s])?[\d\-\s]{7,20}");
-
-                            string str;
-
-                            for (int i = 0; i < 4; i++)
-                                foreach (Match m in r[i].Matches(temp.GetString(b)))
-                                {
-                                    str = m.ToString();
-                                    file.WriteLine(str);
-                                }
-
-                        }
-                        catch { }
-                    };
+                    proc[i] = new QueueProcessor(queue[i], file);
+                    proc[i].BeginProcessData();
                 }
                 catch { }
-            });
+            }
 
+            for (int i = 0; i < Environment.ProcessorCount; i++)
+            {
+                proc[i].EndProcessData();
+            }
         }
-        
-
-    //Непосредственно поиск образца через потоки
-    private void SearhThread(string path, StreamWriter file)
-    {
-        Queue<string>[] queue = new Queue<string>[Environment.ProcessorCount];
-        for (int i = 0; i < Environment.ProcessorCount; i++)
-            queue[i] = new Queue<string>();
-
-        AllFiles(queue, path, file);
-
-        QueueProcessor[] proc = new QueueProcessor[Environment.ProcessorCount];
-        for (int i = 0; i < Environment.ProcessorCount; i++)
+        private void AllFiles(Queue<string>[] queue, string path, StreamWriter file)
         {
             try
             {
-                proc[i] = new QueueProcessor(queue[i], file);
-                proc[i].BeginProcessData();
+                DirectoryInfo di = new DirectoryInfo(path);
+                DirectoryInfo[] directories = di.GetDirectories();
+                FileInfo[] files = di.GetFiles();
+
+                foreach (DirectoryInfo info in directories)
+                {
+                    AllFiles(queue, path + Path.DirectorySeparatorChar + info.Name, file);
+                }
+
+                int k = 0;
+                foreach (FileInfo info in files)
+                {
+                    queue[k % Environment.ProcessorCount].Enqueue(path + Path.DirectorySeparatorChar + info.Name);
+                    k++;
+                }
             }
             catch { }
         }
 
-        for (int i = 0; i < Environment.ProcessorCount; i++)
-        {
-            proc[i].EndProcessData();
-        }
-    }
-    private void AllFiles(Queue<string>[] queue, string path, StreamWriter file)
-    {
-        try
-        {
-            DirectoryInfo di = new DirectoryInfo(path);
-            DirectoryInfo[] directories = di.GetDirectories();
-            FileInfo[] files = di.GetFiles();
 
-            foreach (DirectoryInfo info in directories)
+
+
+
+
+
+
+
+
+
+
+    }
+
+    //Класс поиска паттернов
+    public class QueueProcessor
+    {
+        private Queue<string> queue;
+        private Thread thread;
+        private StreamWriter file;
+
+        public QueueProcessor(Queue<string> queue, StreamWriter file)
+        {
+            this.queue = queue;
+            this.file = file;
+            thread = new Thread(new ThreadStart(this.ThreadFunc));
+        }
+
+        public Thread TheThread
+        {
+            get
             {
-                AllFiles(queue, path + Path.DirectorySeparatorChar + info.Name, file);
+                return thread;
             }
+        }
 
-            int k = 0;
-            foreach (FileInfo info in files)
+        public void BeginProcessData()
+        {
+            thread.Start();
+        }
+
+        public void EndProcessData()
+        {
+            thread.Join();
+        }
+
+        private void ThreadFunc()
+        {
+            foreach (string path in queue)
+                SearchFile(path, file);
+        }
+
+        private void SearchFile(string path, StreamWriter file)
+        {
+            try
             {
-                queue[k % Environment.ProcessorCount].Enqueue(path + Path.DirectorySeparatorChar + info.Name);
-                k++;
+                byte[] b = File.ReadAllBytes(path);
+
+                UTF8Encoding temp = new UTF8Encoding(true);
+                Regex[] r = new Regex[4];
+                r[0] = new Regex(@"[-a-f0-9_.]+@{1}[-0-9a-z]+\.[a-z]{2,5}");
+                r[1] = new Regex(@"\d{4}\s\d{6}");
+                r[2] = new Regex(@"[a-zA-Z1-9\-\._]+@[a-z1-9]+(.[a-z1-9]+){1,}");
+                r[3] = new Regex(@"(8|\+7)([\-\s])?(\(?\d{3}\)?[\-\s])?[\d\-\s]{7,20}");
+                string str;
+
+                for (int i = 0; i < 5; i++)
+                    foreach (Match m in r[i].Matches(temp.GetString(b)))
+                    {
+                        str = m.ToString();
+                        file.WriteLine(str);
+                    }
             }
-        }
-        catch { }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-}
-
-//Класс поиска паттернов
-public class QueueProcessor
-{
-    private Queue<string> queue;
-    private Thread thread;
-    private StreamWriter file;
-
-    public QueueProcessor(Queue<string> queue, StreamWriter file)
-    {
-        this.queue = queue;
-        this.file = file;
-        thread = new Thread(new ThreadStart(this.ThreadFunc));
-    }
-
-    public Thread TheThread
-    {
-        get
-        {
-            return thread;
+            catch { }
         }
     }
-
-    public void BeginProcessData()
-    {
-        thread.Start();
-    }
-
-    public void EndProcessData()
-    {
-        thread.Join();
-    }
-
-    private void ThreadFunc()
-    {
-        foreach (string path in queue)
-            SearchFile(path, file);
-    }
-
-    private void SearchFile(string path, StreamWriter file)
-    {
-        try
-        {
-            byte[] b = File.ReadAllBytes(path);
-
-            UTF8Encoding temp = new UTF8Encoding(true);
-            Regex[] r = new Regex[4];
-            r[0] = new Regex(@"[-a-f0-9_.]+@{1}[-0-9a-z]+\.[a-z]{2,5}");
-            r[1] = new Regex(@"\d{4}\s\d{6}");
-            r[2] = new Regex(@"[a-zA-Z1-9\-\._]+@[a-z1-9]+(.[a-z1-9]+){1,}");
-            r[3] = new Regex(@"(8|\+7)([\-\s])?(\(?\d{3}\)?[\-\s])?[\d\-\s]{7,20}");
-            string str;
-
-            for (int i = 0; i < 5; i++)
-                foreach (Match m in r[i].Matches(temp.GetString(b)))
-                {
-                    str = m.ToString();
-                    file.WriteLine(str);
-                }
-        }
-        catch { }
-    }
-}
 }
