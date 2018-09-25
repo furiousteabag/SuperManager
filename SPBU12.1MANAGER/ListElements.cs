@@ -19,6 +19,7 @@ namespace SPBU12._1MANAGER
         }
         
         //kek
+        //lol
         private void UpdateDirectories(DirectoryInfo di)
         {
             if (path != Path.GetPathRoot(path))
