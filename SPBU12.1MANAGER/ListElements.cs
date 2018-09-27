@@ -18,8 +18,6 @@ namespace SPBU12._1MANAGER
             list = new List<ListViewItem>();
         }
         
-        //keksdsd
-        //lol
         private void UpdateDirectories(DirectoryInfo di)
         {
             if (path != Path.GetPathRoot(path))
