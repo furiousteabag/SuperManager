@@ -36,11 +36,13 @@
             // 
             // listView1
             // 
+            this.listView1.Activation = System.Windows.Forms.ItemActivation.OneClick;
             this.listView1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2});
             this.listView1.Enabled = false;
+            this.listView1.HoverSelection = true;
             this.listView1.Location = new System.Drawing.Point(12, 13);
             this.listView1.Name = "listView1";
             this.listView1.Size = new System.Drawing.Size(270, 236);

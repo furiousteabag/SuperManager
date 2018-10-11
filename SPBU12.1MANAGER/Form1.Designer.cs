@@ -30,18 +30,12 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.copy = new System.Windows.Forms.Button();
-            this.move = new System.Windows.Forms.Button();
-            this.delete = new System.Windows.Forms.Button();
-            this.exit = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.filesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.packToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.unpackToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.searchFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.findToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.downloadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -67,51 +61,6 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // copy
-            // 
-            this.copy.Location = new System.Drawing.Point(389, 665);
-            this.copy.Name = "copy";
-            this.copy.Size = new System.Drawing.Size(197, 23);
-            this.copy.TabIndex = 3;
-            this.copy.TabStop = false;
-            this.copy.Text = "F5 - Copy";
-            this.copy.UseVisualStyleBackColor = true;
-            this.copy.Click += new System.EventHandler(this.copy_Click);
-            // 
-            // move
-            // 
-            this.move.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.move.Location = new System.Drawing.Point(584, 665);
-            this.move.Name = "move";
-            this.move.Size = new System.Drawing.Size(197, 23);
-            this.move.TabIndex = 4;
-            this.move.TabStop = false;
-            this.move.Text = "F6 - Move";
-            this.move.UseVisualStyleBackColor = true;
-            this.move.Click += new System.EventHandler(this.move_Click);
-            // 
-            // delete
-            // 
-            this.delete.Location = new System.Drawing.Point(974, 665);
-            this.delete.Name = "delete";
-            this.delete.Size = new System.Drawing.Size(197, 23);
-            this.delete.TabIndex = 6;
-            this.delete.TabStop = false;
-            this.delete.Text = "F8 - Delete";
-            this.delete.UseVisualStyleBackColor = true;
-            this.delete.Click += new System.EventHandler(this.delete_Click);
-            // 
-            // exit
-            // 
-            this.exit.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.exit.Location = new System.Drawing.Point(1169, 665);
-            this.exit.Name = "exit";
-            this.exit.Size = new System.Drawing.Size(198, 23);
-            this.exit.TabIndex = 7;
-            this.exit.TabStop = false;
-            this.exit.Text = "Alt+F4 - Exit";
-            this.exit.UseVisualStyleBackColor = true;
             // 
             // listView1
             // 
@@ -155,51 +104,33 @@
             // 
             this.filesToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.filesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.packToolStripMenuItem,
-            this.unpackToolStripMenuItem,
             this.searchFileToolStripMenuItem,
             this.findToolStripMenuItem,
             this.downloadToolStripMenuItem,
             this.quitToolStripMenuItem});
             this.filesToolStripMenuItem.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.filesToolStripMenuItem.Name = "filesToolStripMenuItem";
-            this.filesToolStripMenuItem.Size = new System.Drawing.Size(40, 24);
-            this.filesToolStripMenuItem.Text = "Files";
-            // 
-            // packToolStripMenuItem
-            // 
-            this.packToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.packToolStripMenuItem.Name = "packToolStripMenuItem";
-            this.packToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
-            this.packToolStripMenuItem.Text = "Pack...                Alt+F5";
-            this.packToolStripMenuItem.Click += new System.EventHandler(this.packToolStripMenuItem_Click);
-            // 
-            // unpackToolStripMenuItem
-            // 
-            this.unpackToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.unpackToolStripMenuItem.Name = "unpackToolStripMenuItem";
-            this.unpackToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
-            this.unpackToolStripMenuItem.Text = "Unpack...            Alt+F6";
-            this.unpackToolStripMenuItem.Click += new System.EventHandler(this.unpackToolStripMenuItem_Click);
+            this.filesToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
+            this.filesToolStripMenuItem.Text = "Options";
             // 
             // searchFileToolStripMenuItem
             // 
             this.searchFileToolStripMenuItem.Name = "searchFileToolStripMenuItem";
-            this.searchFileToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.searchFileToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.searchFileToolStripMenuItem.Text = "Search file";
             this.searchFileToolStripMenuItem.Click += new System.EventHandler(this.searchFileToolStripMenuItem_Click);
             // 
             // findToolStripMenuItem
             // 
             this.findToolStripMenuItem.Name = "findToolStripMenuItem";
-            this.findToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.findToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.findToolStripMenuItem.Text = "Search patterns";
             this.findToolStripMenuItem.Click += new System.EventHandler(this.findToolStripMenuItem_Click);
             // 
             // downloadToolStripMenuItem
             // 
             this.downloadToolStripMenuItem.Name = "downloadToolStripMenuItem";
-            this.downloadToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.downloadToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.downloadToolStripMenuItem.Text = "Download";
             this.downloadToolStripMenuItem.Click += new System.EventHandler(this.downloadToolStripMenuItem_Click);
             // 
@@ -207,7 +138,7 @@
             // 
             this.quitToolStripMenuItem.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
-            this.quitToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
+            this.quitToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.quitToolStripMenuItem.Text = "Quit                     Alt+F4";
             this.quitToolStripMenuItem.Click += new System.EventHandler(this.quitToolStripMenuItem_Click);
             // 
@@ -397,7 +328,7 @@
             // Form1
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(1348, 687);
+            this.ClientSize = new System.Drawing.Size(1348, 644);
             this.Controls.Add(this.textBox5);
             this.Controls.Add(this.textBox4);
             this.Controls.Add(this.button5);
@@ -408,18 +339,14 @@
             this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.listView2);
             this.Controls.Add(this.listView1);
-            this.Controls.Add(this.exit);
-            this.Controls.Add(this.delete);
-            this.Controls.Add(this.move);
-            this.Controls.Add(this.copy);
             this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(1364, 726);
-            this.MinimumSize = new System.Drawing.Size(1364, 726);
+            this.MaximumSize = new System.Drawing.Size(1364, 683);
+            this.MinimumSize = new System.Drawing.Size(1364, 683);
             this.Name = "Form1";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -434,10 +361,6 @@
         }
 
         #endregion
-        private System.Windows.Forms.Button copy;
-        private System.Windows.Forms.Button move;
-        private System.Windows.Forms.Button delete;
-        private System.Windows.Forms.Button exit;
         private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.ToolStripMenuItem filesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem configurationToolStripMenuItem;
@@ -461,8 +384,6 @@
         private System.Windows.Forms.ColumnHeader columnHeader4;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.ToolStripMenuItem packToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem unpackToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveSettingsToolStripMenuItem;

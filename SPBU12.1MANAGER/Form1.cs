@@ -14,6 +14,8 @@ using System.Text.RegularExpressions;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Net;
+using System.Linq;
+using System.Diagnostics;
 
 namespace SPBU12._1MANAGER
 {
@@ -401,8 +403,9 @@ namespace SPBU12._1MANAGER
         }
 
         //Скопировать файлы
-        private void IsCopy(ListView lw)
+        private void IsCopy()
         {
+            var lw = WhichListView();
             if (ShowWind(EndDir(Root(lw)), "Copy " + lw.SelectedItems.Count + " file(s) to:"))
             {
                 foreach (ListViewItem file in lw.SelectedItems)
@@ -426,8 +429,9 @@ namespace SPBU12._1MANAGER
         }
 
         //Переместить файлы
-        private void MoveF(ListView lw)
+        private void MoveF()
         {
+            var lw = WhichListView();
             if (ShowWind(EndDir(Root(lw)), "Rename/move " + lw.SelectedItems.Count + " file(s) to:"))
             {
                 foreach (ListViewItem item in lw.SelectedItems)
@@ -458,8 +462,9 @@ namespace SPBU12._1MANAGER
         }
 
         //Удалить несколько выбранных элементов
-        private void Delete(ListView lw)
+        private void Delete()
         {
+            var lw = WhichListView();
             if (MBShowOK(lw.SelectedItems.Count))
             {
                 foreach (ListViewItem item in lw.SelectedItems)
@@ -571,12 +576,12 @@ namespace SPBU12._1MANAGER
                 else if (e.Alt && e.KeyCode == Keys.F5)
                 {
                     if (IsSelectedOne())
-                        Pack(WhichListView());
+                        Pack();
                 }
                 else if (e.Alt && e.KeyCode == Keys.F6)
                 {
                     if (IsSelectedOne())
-                        Unpack(WhichListView());
+                        Unpack();
                 }
                 else if (e.KeyCode == Keys.F1)
                 {
@@ -590,26 +595,39 @@ namespace SPBU12._1MANAGER
                 else if (e.KeyCode == Keys.F5)
                 {
                     if (IsSelected())
-                        IsCopy(WhichListView());
+                        IsCopy();
                 }
                 else if (e.KeyCode == Keys.F6)
                 {
                     if (IsSelected())
-                        MoveF(WhichListView());
+                        MoveF();
+                }
+                else if (e.KeyCode == Keys.Delete)
+                {
+                    if (IsSelected())
+                        Delete();
                 }
                 else if (e.KeyCode == Keys.F7)
                 {
-
+                    if (IsSelectedOne())
+                        StatisticsTXT();
                 }
-                else if (e.KeyCode == Keys.F8 || e.KeyCode == Keys.Delete)
+                else if (e.Alt && e.KeyCode == Keys.Left)
                 {
-                    if (IsSelected())
-                        Delete(WhichListView());
+                    if (WhichListView() == listView1)
+                    {
+                        if (Path.GetDirectoryName(rootLeft) != null)
+                            rootLeft = Path.GetDirectoryName(rootLeft);
+                        UpdateListView(listView1);
+                    }
+                    else if (WhichListView() == listView2)
+                    {
+                        if (Path.GetDirectoryName(rootRight) != null)
+                            rootRight = Path.GetDirectoryName(rootRight);
+                        UpdateListView(listView2);
+                    }
                 }
-                else if (e.KeyCode == Keys.F9)
-                {
 
-                }
             }
             catch (Exception ex)
             {
@@ -625,20 +643,19 @@ namespace SPBU12._1MANAGER
         private void move_Click(object sender, EventArgs e)
         {
             if (IsSelected())
-                MoveF(WhichListView());
+                MoveF();
         }
         //Cкопировать
         private void copy_Click(object sender, EventArgs e)
         {
             if (IsSelected())
-                Task.Factory.StartNew(() =>
-                    IsCopy(WhichListView()));
+                IsCopy();
         }
         //Удалить
         private void delete_Click(object sender, EventArgs e)
         {
             if (IsSelected())
-                Delete(WhichListView());
+                Delete();
         }
         //Обработка кнопки help
         private void helpToolStripMenuItem_Click(object sender, EventArgs e)
@@ -650,13 +667,13 @@ namespace SPBU12._1MANAGER
         {
 
             if (IsSelectedOne())
-                PackFile(WhichListView());
+                PackFile();
         }
         //Обработка кнопки разархивации
         private void unpackToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (IsSelectedOne())
-                Unpack(WhichListView());
+                Unpack();
         }
         //Обработка кнопки options
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -701,11 +718,105 @@ namespace SPBU12._1MANAGER
 
 
 
-        //АРХИВАЦИЯ
+        //---СТАТИСТИКА ПО ФАЙЛУ---
+
+        private void StatisticsTXT()
+        {
+            var lw = WhichListView();
+            ListViewItem file = lw.SelectedItems[0];
+
+            try
+            {
+                //Length of top words
+                var topWordsLength = 5;
+
+                //Starting work message
+                MessageBox.Show(
+                       "Starting work...",
+                       "File statistics",
+                       MessageBoxButtons.OK,
+                       MessageBoxIcon.Asterisk
+                                       );
+
+                string output = "";
+                var lineCount = 0;
+                var unicWordCount = 0;
+
+                //Creating a file path
+                string filePath = Root(WhichListView()) + Path.DirectorySeparatorChar + file.Text.Substring(0) + ".txt";
+
+                //Initializing timer
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                //Counting the number of lines
+                Task taskA = Task.Run(() =>
+                {
+                    using (var reader = File.OpenText(filePath))
+                    {
+                        while (reader.ReadLine() != null)
+                            lineCount++;
+                    }
+                    output += "Number of lines: " + lineCount + "\n";
+                });
+
+                //Number of words, number of unic words, top 10 words
+                Task taskB = Task.Run(() =>
+                {
+                    //Creating an array of words
+                    byte[] b = File.ReadAllBytes(filePath);
+                    string textToAnalyse = Encoding.Default.GetString(b).ToLower().Replace(",", "").Replace(".", "").Replace("(", "").Replace(")", "").Replace("-", "");
+                    string[] arrayOfWords = textToAnalyse.Split();
+                    //Counting the number of words
+                    output += "Number of words: " + arrayOfWords.Length + "\n";
+
+                    //Counting the number of unic words
+                    unicWordCount = (from word in arrayOfWords.AsParallel() select word).Distinct().Count();
+                    output += "Number of unic words: " + unicWordCount + "\n";
+
+                    //Top 10 words
+                    var presortedList = arrayOfWords.GroupBy(s => s).Where(g => g.Count() > 1).OrderByDescending(g => g.Count()).Select(g => g.Key).ToList();
+                    presortedList.Remove("");
+                    var sortedList = (from word in presortedList where word.Length > topWordsLength select word);
+
+                    var topTenWords = sortedList.Take(10);
+
+                    output += "Top ten words with length > " + topWordsLength + ":\n";
+                    int i = 1;
+                    foreach (var word in topTenWords)
+                    {
+                        output += i + ") " + word + "\n";
+                        i++;
+                    }
+                });
+
+                //MessageBox
+                var finalTask = Task.Factory.ContinueWhenAll(new Task[] { taskA, taskB }, ant =>
+                {
+                    stopwatch.Stop();
+                    output += "Time: " + stopwatch.Elapsed;
+                    MessageBox.Show(
+                        output,
+                        "File statistics",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                                   );
+                });
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+
+
+        //---АРХИВАЦИЯ---
 
         //Архивация (архивирует целую папку с таском)
-        private void Pack(ListView lw)
+        private void Pack()
         {
+            var lw = WhichListView();
             ListViewItem file = lw.SelectedItems[0];
             string path = Root(lw) + Path.DirectorySeparatorChar + file.Text + file.SubItems[1].Text;
 
@@ -731,8 +842,9 @@ namespace SPBU12._1MANAGER
         }
 
         //Архивация (архивирует папку с файлами с асинхронной архивацией)
-        private void PackFile(ListView lw)
+        private void PackFile()
         {
+            var lw = WhichListView();
             ListViewItem file = lw.SelectedItems[0];
             string path = Root(WhichListView()) + Path.DirectorySeparatorChar + file.Text.Substring(1).Remove(file.Text.Length - 2);
             Directory.CreateDirectory(path + "_archived");
@@ -803,8 +915,9 @@ namespace SPBU12._1MANAGER
         }
 
         //Разархивация
-        private void Unpack(ListView lw)
+        private void Unpack()
         {
+            var lw = WhichListView();
             ListViewItem file = lw.SelectedItems[0];
             if (file.SubItems[1].Text != ".zip")
             {
@@ -1037,6 +1150,31 @@ namespace SPBU12._1MANAGER
             catch { }
         }
 
+        public static void delByIndex(ref string[] data, int delIndex)
+        {
+            string[] newData = new string[data.Length - 1];
+            for (int i = 0; i < delIndex; i++)
+            {
+                newData[i] = data[i];
+            }
+            for (int i = delIndex; i < newData.Length; i++)
+            {
+                newData[i] = data[i + 1];
+            }
+            data = newData;
+        }
+
+        public static void delByValue(ref string[] data, string delValue)
+        {
+            for (int i = 0; i < data.Length; i++)
+            {
+                if (data[i] == delValue)
+                {
+                    delByIndex(ref data, i);
+                    i--;
+                }
+            }
+        }
 
 
 
