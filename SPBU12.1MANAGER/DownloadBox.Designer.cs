@@ -41,7 +41,7 @@
             this.DownloadTextBox.Name = "DownloadTextBox";
             this.DownloadTextBox.Size = new System.Drawing.Size(188, 20);
             this.DownloadTextBox.TabIndex = 0;
-            // 
+             // 
             // label1
             // 
             this.label1.AutoSize = true;

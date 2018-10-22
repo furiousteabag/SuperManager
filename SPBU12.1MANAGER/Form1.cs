@@ -19,6 +19,9 @@ using System.Diagnostics;
 
 namespace SPBU12._1MANAGER
 {
+
+
+
     public partial class Form1 : Form
     {
         //Инициализация переменных
@@ -169,7 +172,7 @@ namespace SPBU12._1MANAGER
         }
 
         //Директория формы
-        private string Root(ListView lw)
+        public string Root(ListView lw)
         {
             if (lw == listView1)
                 return rootLeft;
@@ -505,7 +508,7 @@ namespace SPBU12._1MANAGER
         }
 
         //Какой листвью выбран
-        private ListView WhichListView()
+        public ListView WhichListView()
         {
             if (listView2.Focused)
             {
@@ -553,6 +556,18 @@ namespace SPBU12._1MANAGER
 
         //ОБРАБОТКА СОЧЕТАНИЙ КЛАВИШ И ОБЫЧНЫХ НАЖАТИЙ
 
+        // Search patterns button
+        private void findToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (IsSelected())
+            {
+                ListViewItem selectFile = WhichListView().SelectedItems[0];
+                string fName = Root(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text;
+                string dName = Root(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text.Substring(1).Remove(selectFile.Text.Length - 2);
+                (new SearchPatternsParallels(new SearchHandler())).Search(fName, dName);
+            }
+        }
+
         //Сочетания
         private void Form1_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
@@ -573,10 +588,20 @@ namespace SPBU12._1MANAGER
                     comboBox2.Focus();
                     comboBox2.DroppedDown = true;
                 }
+                //Pack button
                 else if (e.Alt && e.KeyCode == Keys.F5)
                 {
                     if (IsSelectedOne())
-                        Pack();
+                    {
+                        ArchiveFileSecond file = new ArchiveFileSecond();
+
+                        // A path of file to pack
+                        var lw = WhichListView();
+                        ListViewItem fileChosen = lw.SelectedItems[0];
+                        string path = Root(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text;
+
+                        file.Pack(path);
+                    }
                 }
                 else if (e.Alt && e.KeyCode == Keys.F6)
                 {
@@ -662,13 +687,7 @@ namespace SPBU12._1MANAGER
         {
             Help();
         }
-        //Обработка кнопки архивации
-        private void packToolStripMenuItem_Click(object sender, EventArgs e)
-        {
 
-            if (IsSelectedOne())
-                PackFile();
-        }
         //Обработка кнопки разархивации
         private void unpackToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -717,6 +736,24 @@ namespace SPBU12._1MANAGER
         }
 
 
+        //Разархивация
+        private void Unpack()
+        {
+            var lw = WhichListView();
+            ListViewItem file = lw.SelectedItems[0];
+            if (file.SubItems[1].Text != ".zip")
+            {
+                MessageBox.Show(
+                       "Operation Cancelled: not *.zip file.",
+                       "Unpack status",
+                       MessageBoxButtons.OK,
+                       MessageBoxIcon.Error
+                                  );
+                return;
+            }
+            string path = Root(lw) + Path.DirectorySeparatorChar + file.Text + file.SubItems[1].Text;
+            ZipFile.ExtractToDirectory(path, path.Substring(0, path.Length - 4));
+        }
 
         //---СТАТИСТИКА ПО ФАЙЛУ---
 
@@ -748,6 +785,9 @@ namespace SPBU12._1MANAGER
                 //Initializing timer
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
+                byte[] b = File.ReadAllBytes(filePath);
+
+
                 //Counting the number of lines
                 Task taskA = Task.Run(() =>
                 {
@@ -763,7 +803,6 @@ namespace SPBU12._1MANAGER
                 Task taskB = Task.Run(() =>
                 {
                     //Creating an array of words
-                    byte[] b = File.ReadAllBytes(filePath);
                     string textToAnalyse = Encoding.Default.GetString(b).ToLower().Replace(",", "").Replace(".", "").Replace("(", "").Replace(")", "").Replace("-", "");
                     string[] arrayOfWords = textToAnalyse.Split();
                     //Counting the number of words
@@ -807,447 +846,6 @@ namespace SPBU12._1MANAGER
             {
                 MessageBox.Show(ex.Message);
             }
-        }
-
-
-
-        //---АРХИВАЦИЯ---
-
-        //Архивация (архивирует целую папку с таском)
-        private void Pack()
-        {
-            var lw = WhichListView();
-            ListViewItem file = lw.SelectedItems[0];
-            string path = Root(lw) + Path.DirectorySeparatorChar + file.Text + file.SubItems[1].Text;
-
-            Task.Factory.StartNew(() =>
-            {
-                if (File.Exists(path))
-                {
-                    Directory.CreateDirectory(path + "_ZIP");
-
-                    File.Copy(path, path + "_ZIP" + Path.DirectorySeparatorChar + Path.GetFileName(path));
-
-                    ZipFile.CreateFromDirectory(path + "_ZIP", path + ".zip");
-                    Directory.Delete(path + "_ZIP", true);
-
-                }
-                else
-                {
-                    path = Root(lw) + Path.DirectorySeparatorChar + file.Text.Substring(1).Remove(file.Text.Length - 2);
-                    if (Directory.Exists(path))
-                        ZipFile.CreateFromDirectory(path, path + ".zip");
-                }
-            });
-        }
-
-        //Архивация (архивирует папку с файлами с асинхронной архивацией)
-        private void PackFile()
-        {
-            var lw = WhichListView();
-            ListViewItem file = lw.SelectedItems[0];
-            string path = Root(WhichListView()) + Path.DirectorySeparatorChar + file.Text.Substring(1).Remove(file.Text.Length - 2);
-            Directory.CreateDirectory(path + "_archived");
-
-            DirectoryInfo di = new DirectoryInfo(path);
-            FileInfo[] files = di.GetFiles();
-
-            Parallel.ForEach(files, (currentFile) =>
-            {
-                string pathFile = currentFile.FullName;
-                string compressfile = path + "_archived" + "\\" + currentFile.ToString() + ".zip";
-                WhichCompress(pathFile, compressfile);
-            });
-
-        }
-        //Выбор алгоритма сжатия
-        private void WhichCompress(string sourceFile, string compressedFile)
-        {
-            InitializeAsyncCompress(sourceFile, compressedFile);
-        }
-        //Инициализация асинхронного сжатия
-        private async void InitializeAsyncCompress(string sourceFile, string compressedFile)
-        {
-            await CompressAsync(sourceFile, compressedFile);
-        }
-
-        //Метод для архивации одного обьекта
-        public static void Compress(string sourceFile, string compressedFile)
-        {
-            // поток для чтения исходного файла
-            using (FileStream sourceStream = new FileStream(sourceFile, FileMode.OpenOrCreate))
-            {
-                // поток для записи сжатого файла
-                using (FileStream targetStream = File.Create(compressedFile))
-                {
-                    // поток архивации
-                    using (GZipStream compressionStream = new GZipStream(targetStream, CompressionMode.Compress))
-                    {
-                        sourceStream.CopyTo(compressionStream); // копируем байты из одного потока в другой
-                        Console.WriteLine("Сжатие файла {0} завершено. Исходный размер: {1}  сжатый размер: {2}.",
-                            sourceFile, sourceStream.Length.ToString(), targetStream.Length.ToString());
-                    }
-                }
-            }
-        }
-
-        //Метод для архивации одного обьекта асинхронно
-        public static Task CompressAsync(string sourceFile, string compressedFile)
-        {
-            return Task.Run(() =>
-            {
-                // поток для чтения исходного файла
-                using (FileStream sourceStream = new FileStream(sourceFile, FileMode.OpenOrCreate))
-                {
-                    // поток для записи сжатого файла
-                    using (FileStream targetStream = File.Create(compressedFile))
-                    {
-                        // поток архивации
-                        using (GZipStream compressionStream = new GZipStream(targetStream, CompressionMode.Compress))
-                        {
-                            sourceStream.CopyTo(compressionStream); // копируем байты из одного потока в другой
-                            Console.WriteLine("Сжатие файла {0} завершено. Исходный размер: {1}  сжатый размер: {2}.",
-                                sourceFile, sourceStream.Length.ToString(), targetStream.Length.ToString());
-                        }
-                    }
-                }
-            });
-        }
-
-        //Разархивация
-        private void Unpack()
-        {
-            var lw = WhichListView();
-            ListViewItem file = lw.SelectedItems[0];
-            if (file.SubItems[1].Text != ".zip")
-            {
-                MessageBox.Show("Not *.zip!!!");
-                return;
-            }
-            string path = Root(lw) + Path.DirectorySeparatorChar + file.Text + file.SubItems[1].Text;
-            ZipFile.ExtractToDirectory(path, path.Substring(0, path.Length - 4));
-        }
-
-        private void textBox4_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void listView1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-
-
-
-
-
-        //ПОИСК
-
-        //Обработка кнопки поиска
-        private void findToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (IsSelected())
-                SearchInitsialization();
-            //Task.Factory.StartNew(() => );
-        }
-
-        //Инициализация поиска
-        private void SearchInitsialization()
-        {
-            ListViewItem selectFile = WhichListView().SelectedItems[0];
-            string fName = Root(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text;
-            string dName = Root(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text.Substring(1).Remove(selectFile.Text.Length - 2);
-
-            Task.Factory.StartNew(() =>
-            {
-                if (Directory.Exists(dName))
-                {
-                    string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) +
-                        Path.DirectorySeparatorChar + Path.GetFileName(dName) + "_PatternsSearchResults" + @".txt";
-                    using (StreamWriter file = new StreamWriter(path, false, Encoding.UTF8))
-                    {
-                        WhichSearch(dName, file);
-
-                    }
-                }
-                else if (File.Exists(fName))
-                    MessageBox.Show("Берём данные только из целых папок или дисков");
-            });
-
-        }
-
-        //Выбор алгоритма поиска
-        private void WhichSearch(string path, StreamWriter file)
-        {
-            // Task.Factory.StartNew(() => SearhParallels(path, file));
-            SearhParallels(path, file);
-        }
-        //Инициализация асинхронного поиска
-        private async void InitializeAsyncSearch(string path, StreamWriter file)
-        {
-            await SearhAsync(path, file);
-        }
-
-        //Параллельный поиск образца
-        private void SearhParallels(string path, StreamWriter file)
-        {
-
-            Action action = () =>
-             {
-                 try
-                 {
-
-                     DirectoryInfo di = new DirectoryInfo(path);
-                     DirectoryInfo[] directories = di.GetDirectories();
-                     FileInfo[] files = di.GetFiles();
-
-                     Parallel.ForEach(directories, (info) =>
-                      {
-
-                          Task.Factory.StartNew(() =>
-                          {
-                              SearhParallels(info.FullName, file);
-
-                          });
-
-                      });
-
-                     Parallel.ForEach(files, (currentFile) =>
-                     {
-                         try
-                         {
-                             byte[] b = File.ReadAllBytes(currentFile.FullName);
-
-                             UTF8Encoding temp = new UTF8Encoding(true);
-                             Regex[] r = new Regex[4];
-                             r[0] = new Regex(@"[-a-f0-9_.]+@{1}[-0-9a-z]+\.[a-z]{2,5}");
-                             r[1] = new Regex(@"\d{4}\s\d{6}");
-                             r[2] = new Regex(@"[a-zA-Z1-9\-\._]+@[a-z1-9]+(.[a-z1-9]+){1,}");
-                             r[3] = new Regex(@"(8|\+7)([\-\s])?(\(?\d{3}\)?[\-\s])?[\d\-\s]{7,20}");
-
-                             string str;
-
-                             for (int i = 0; i < 4; i++)
-                                 foreach (Match m in r[i].Matches(temp.GetString(b)))
-                                 {
-                                     str = m.ToString();
-                                     file.WriteLine(str);
-                                 }
-
-                         }
-                         catch { }
-                     });
-                 }
-                 catch { }
-             };
-            Invoke(action);
-        }
-
-        //Асинхронный поиск образца
-        private Task SearhAsync(string path, StreamWriter file)
-        {
-            return Task.Run(() =>
-            {
-                Action action = () =>
-                {
-                    try
-                    {
-
-                        DirectoryInfo di = new DirectoryInfo(path);
-                        DirectoryInfo[] directories = di.GetDirectories();
-                        FileInfo[] files = di.GetFiles();
-
-                        Parallel.ForEach(directories, (info) =>
-                        {
-
-                            Task.Factory.StartNew(() =>
-                            {
-                                SearhParallels(info.FullName, file);
-
-                            });
-
-                        });
-
-                        Parallel.ForEach(files, (currentFile) =>
-                        {
-                            try
-                            {
-                                byte[] b = File.ReadAllBytes(currentFile.FullName);
-
-                                UTF8Encoding temp = new UTF8Encoding(true);
-                                Regex[] r = new Regex[4];
-                                r[0] = new Regex(@"[-a-f0-9_.]+@{1}[-0-9a-z]+\.[a-z]{2,5}");
-                                r[1] = new Regex(@"\d{4}\s\d{6}");
-                                r[2] = new Regex(@"[a-zA-Z1-9\-\._]+@[a-z1-9]+(.[a-z1-9]+){1,}");
-                                r[3] = new Regex(@"(8|\+7)([\-\s])?(\(?\d{3}\)?[\-\s])?[\d\-\s]{7,20}");
-
-                                string str;
-
-                                for (int i = 0; i < 4; i++)
-                                    foreach (Match m in r[i].Matches(temp.GetString(b)))
-                                    {
-                                        str = m.ToString();
-                                        file.WriteLine(str);
-                                    }
-
-                            }
-                            catch { }
-                        });
-                    }
-                    catch { }
-                };
-                Invoke(action);
-            });
-        }
-
-        //Непосредственно поиск образца через потоки
-        private void SearhThread(string path, StreamWriter file)
-        {
-            Queue<string>[] queue = new Queue<string>[Environment.ProcessorCount];
-            for (int i = 0; i < Environment.ProcessorCount; i++)
-                queue[i] = new Queue<string>();
-
-            AllFiles(queue, path, file);
-
-            QueueProcessor[] proc = new QueueProcessor[Environment.ProcessorCount];
-            for (int i = 0; i < Environment.ProcessorCount; i++)
-            {
-                try
-                {
-                    proc[i] = new QueueProcessor(queue[i], file);
-                    proc[i].BeginProcessData();
-                }
-                catch { }
-            }
-
-            for (int i = 0; i < Environment.ProcessorCount; i++)
-            {
-                proc[i].EndProcessData();
-            }
-        }
-        private void AllFiles(Queue<string>[] queue, string path, StreamWriter file)
-        {
-            try
-            {
-                DirectoryInfo di = new DirectoryInfo(path);
-                DirectoryInfo[] directories = di.GetDirectories();
-                FileInfo[] files = di.GetFiles();
-
-                foreach (DirectoryInfo info in directories)
-                {
-                    AllFiles(queue, path + Path.DirectorySeparatorChar + info.Name, file);
-                }
-
-                int k = 0;
-                foreach (FileInfo info in files)
-                {
-                    queue[k % Environment.ProcessorCount].Enqueue(path + Path.DirectorySeparatorChar + info.Name);
-                    k++;
-                }
-            }
-            catch { }
-        }
-
-        public static void delByIndex(ref string[] data, int delIndex)
-        {
-            string[] newData = new string[data.Length - 1];
-            for (int i = 0; i < delIndex; i++)
-            {
-                newData[i] = data[i];
-            }
-            for (int i = delIndex; i < newData.Length; i++)
-            {
-                newData[i] = data[i + 1];
-            }
-            data = newData;
-        }
-
-        public static void delByValue(ref string[] data, string delValue)
-        {
-            for (int i = 0; i < data.Length; i++)
-            {
-                if (data[i] == delValue)
-                {
-                    delByIndex(ref data, i);
-                    i--;
-                }
-            }
-        }
-
-
-
-
-
-
-
-
-
-
-
-    }
-
-    //Класс поиска паттернов
-    public class QueueProcessor
-    {
-        private Queue<string> queue;
-        private Thread thread;
-        private StreamWriter file;
-
-        public QueueProcessor(Queue<string> queue, StreamWriter file)
-        {
-            this.queue = queue;
-            this.file = file;
-            thread = new Thread(new ThreadStart(this.ThreadFunc));
-        }
-
-        public Thread TheThread
-        {
-            get
-            {
-                return thread;
-            }
-        }
-
-        public void BeginProcessData()
-        {
-            thread.Start();
-        }
-
-        public void EndProcessData()
-        {
-            thread.Join();
-        }
-
-        private void ThreadFunc()
-        {
-            foreach (string path in queue)
-                SearchFile(path, file);
-        }
-
-        private void SearchFile(string path, StreamWriter file)
-        {
-            try
-            {
-                byte[] b = File.ReadAllBytes(path);
-
-                UTF8Encoding temp = new UTF8Encoding(true);
-                Regex[] r = new Regex[4];
-                r[0] = new Regex(@"[-a-f0-9_.]+@{1}[-0-9a-z]+\.[a-z]{2,5}");
-                r[1] = new Regex(@"\d{4}\s\d{6}");
-                r[2] = new Regex(@"[a-zA-Z1-9\-\._]+@[a-z1-9]+(.[a-z1-9]+){1,}");
-                r[3] = new Regex(@"(8|\+7)([\-\s])?(\(?\d{3}\)?[\-\s])?[\d\-\s]{7,20}");
-                string str;
-
-                for (int i = 0; i < 5; i++)
-                    foreach (Match m in r[i].Matches(temp.GetString(b)))
-                    {
-                        str = m.ToString();
-                        file.WriteLine(str);
-                    }
-            }
-            catch { }
         }
     }
 }

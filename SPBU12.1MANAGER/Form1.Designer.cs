@@ -77,7 +77,6 @@
             this.listView1.TabIndex = 0;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
-            this.listView1.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged);
             this.listView1.DoubleClick += new System.EventHandler(this.listView1_DoubleClick);
             // 
             // columnHeader1
@@ -309,7 +308,6 @@
             this.textBox4.Size = new System.Drawing.Size(648, 20);
             this.textBox4.TabIndex = 28;
             this.textBox4.TabStop = false;
-            this.textBox4.TextChanged += new System.EventHandler(this.textBox4_TextChanged);
             // 
             // textBox5
             // 
@@ -361,11 +359,11 @@
         }
 
         #endregion
-        private System.Windows.Forms.ListView listView1;
+        public System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.ToolStripMenuItem filesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem configurationToolStripMenuItem;
         private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ListView listView2;
+        public System.Windows.Forms.ListView listView2;
         private System.Windows.Forms.ColumnHeader n2;
         private System.Windows.Forms.ColumnHeader e2;
         private System.Windows.Forms.ColumnHeader s2;

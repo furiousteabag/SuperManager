@@ -33,16 +33,18 @@ namespace SPBU12._1MANAGER
             button2.Enabled = true;
             cts = new CancellationTokenSource();
 
-            var progress = new Progress<string>(i => label2.Text = ("Progress: " + i.ToString()));
+            var progress = new Progress<string>(i => {
+                label2.Text = ("Progress: " + i.ToString()); });
 
             Task taskA = Task.Run(() => Download(cts.Token, progress));
+            
         }
 
         //Download
         public async void Download(CancellationToken token, IProgress<string> progress)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-
+ 
             //Opening a stream to file
             WebRequest request = WebRequest.Create(DownloadTextBox.Text);
             request.Method = WebRequestMethods.File.DownloadFile;
@@ -56,7 +58,7 @@ namespace SPBU12._1MANAGER
             //How many bytes
             long responsize = response.ContentLength / 1024;
 
-            byte[] buffer = new byte[128];
+            byte[] buffer = new byte[1024];
             int size = 0;
             bool cancelStatus = false;
             int summary = 0;
@@ -103,6 +105,8 @@ namespace SPBU12._1MANAGER
             button2.Enabled = false;
             cts.Cancel();
         }
+
+      
 
 
 
