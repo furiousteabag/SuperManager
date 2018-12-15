@@ -145,6 +145,7 @@
     <Compile Include="Start.Designer.cs">
       <DependentUpon>Start.cs</DependentUpon>
     </Compile>
+    <Compile Include="SystemIOMethods.cs" />
     <Compile Include="UserData.cs" />
     <EmbeddedResource Include="Configuration.resx">
       <DependentUpon>Configuration.cs</DependentUpon>

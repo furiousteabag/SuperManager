@@ -1,14 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
-//using Microsoft.DirectX.AudioVideoPlayback;
 
 namespace SPBU12._1MANAGER {
     public partial class Configuration : Form {
@@ -170,8 +162,7 @@ namespace SPBU12._1MANAGER {
             textBox1.Text = "Music";
 
             string path = "C:\\Users\\Natasha\\Desktop\\Projects\\FManager\\SPBU12.1MANAGER\\Music";
-            DirectoryInfo di = new DirectoryInfo(path);
-            FileInfo[] files = di.GetFiles();
+            var files = FileMethods.GetFileInfos(path);
 
             for (int i = 0; i < files.Length; i++) {
                 Label lb = new Label();

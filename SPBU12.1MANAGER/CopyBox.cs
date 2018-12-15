@@ -1,18 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Input;
-using System.IO;
-using System.IO.Compression;
-using System.Security.Permissions;
-using System.Text.RegularExpressions;
 
 
 namespace SPBU12._1MANAGER
@@ -30,11 +17,10 @@ namespace SPBU12._1MANAGER
 
             comboBox1.Items.Add(rootTo);
             comboBox1.Text = comboBox1.Items[0].ToString();
-            DirectoryInfo di = new DirectoryInfo(rootTo);
-            DirectoryInfo[] directories = di.GetDirectories();
-            foreach (DirectoryInfo info in directories)
+            var directories = FolderMethods.GetDirectoryInfos(rootTo);
+            foreach (var info in directories)
             {
-                comboBox1.Items.Add(rootTo + Path.DirectorySeparatorChar + info.Name);
+                comboBox1.Items.Add(rootTo + Entity.GetDirectorySeparatorChar() + info.Name);
             }
         }
 

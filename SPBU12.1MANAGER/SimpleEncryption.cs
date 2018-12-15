@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
-using System.IO;
 
 namespace SPBU12._1MANAGER
 {
@@ -43,7 +39,7 @@ namespace SPBU12._1MANAGER
             {
                 using (ICryptoTransform decryptor = rijndaelManaged.CreateDecryptor(_KeyBytes, _InitVectorBytes))
                 {
-                    using (MemoryStream memoryStream = new MemoryStream(encryptedTextBytes))
+                    using (var memoryStream = FileMethods.Memory(encryptedTextBytes))
                     {
                         using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
                         {
@@ -73,7 +69,7 @@ namespace SPBU12._1MANAGER
 
             using (ICryptoTransform encryptor = rijndaelManaged.CreateEncryptor(_KeyBytes, _InitVectorBytes))
             {
-                using (MemoryStream memoryStream = new MemoryStream())
+                using (var memoryStream = FileMethods.Memory())
                 {
                     using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
                     {

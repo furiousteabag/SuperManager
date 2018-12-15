@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace SPBU12._1MANAGER
 {
@@ -19,12 +13,9 @@ namespace SPBU12._1MANAGER
             {
                 path = path.Replace("[", "").Replace("]", "");
 
-                Directory.CreateDirectory(path + "_archived");
+                FolderMethods.CreateDirectory(path + "_archived");
 
-                DirectoryInfo di = new DirectoryInfo(path);
-                FileInfo[] files = di.GetFiles();
-
-                Parallel.ForEach(files, (currentFile) =>
+                Parallel.ForEach(FileMethods.GetFileInfos(path), (currentFile) =>
                 {
                     string pathFile = currentFile.FullName;
                     string compressfile = path + "_archived" + "\\" + currentFile.ToString() + ".zip";
@@ -34,7 +25,7 @@ namespace SPBU12._1MANAGER
             //If we got a file
             else
             {              
-                CompressFile(path + ".txt", Path.GetDirectoryName(path) + "\\" + Path.GetFileName(path) + ".txt" + ".zip");
+                CompressFile(path + ".txt", FolderMethods.GetName(path) + "\\" + FileMethods.GetName(path) + ".txt" + ".zip");
             }
         }
 
@@ -61,13 +52,13 @@ namespace SPBU12._1MANAGER
         protected override void CompressFile(string pathfile, string compressfile)
         {
             // поток для чтения исходного файла
-            using (FileStream sourceStream = new FileStream(pathfile, FileMode.OpenOrCreate))
+            using (var sourceStream = FileMethods.GetFileStream(pathfile))
             {
                 // поток для записи сжатого файла
-                using (FileStream targetStream = File.Create(compressfile))
+                using (var targetStream = FileMethods.GetTargetStream(compressfile))
                 {
                     // поток архивации
-                    using (GZipStream compressionStream = new GZipStream(targetStream, CompressionMode.Compress))
+                    using (var compressionStream = Entity.GetGZipStream(targetStream))
                     {
                         sourceStream.CopyTo(compressionStream); // копируем байты из одного потока в другой
                         Console.WriteLine("Сжатие файла {0} завершено. Исходный размер: {1}  сжатый размер: {2}.",
@@ -89,10 +80,10 @@ namespace SPBU12._1MANAGER
 
         protected override void CompressFile(string pathfile, string compressfile)
         {
-            Directory.CreateDirectory(pathfile + "_ZIP");
-            File.Copy(pathfile, pathfile + "_ZIP" + Path.DirectorySeparatorChar + Path.GetFileName(pathfile));
-            ZipFile.CreateFromDirectory(pathfile + "_ZIP", compressfile);
-            Directory.Delete(pathfile + "_ZIP", true);
+            FolderMethods.CreateDirectory(pathfile + "_ZIP");
+            FileMethods.CopyToZippedFolder(pathfile);
+            FolderMethods.CreateZipFrom(pathfile + "_ZIP", compressfile);
+            FolderMethods.DeleteDirectory(pathfile + "_ZIP");
         }
     }
 }

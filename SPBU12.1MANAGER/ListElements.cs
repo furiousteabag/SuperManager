@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace SPBU12._1MANAGER
@@ -18,54 +13,22 @@ namespace SPBU12._1MANAGER
             list = new List<ListViewItem>();
         }
         
-        private void UpdateDirectories(DirectoryInfo di)
-        {
-            if (path != Path.GetPathRoot(path))
-            {
-                list.Add(new ListViewItem("[..]"));
-            }
-
-            DirectoryInfo[] directories = di.GetDirectories();
-
-            foreach (DirectoryInfo info in directories)
-            {
-                ListViewItem el = new ListViewItem("[" + info.Name + "]");
-                el.SubItems.Add("");
-                el.SubItems.Add("<DIR>");
-                el.SubItems.Add(info.CreationTime.ToString());
-                list.Add(el);
-            }
-        }
-
-        private void UpdateFiles(DirectoryInfo di)
-        {
-            FileInfo[] files = di.GetFiles();
-
-            foreach (FileInfo info in files)
-            {
-                ListViewItem el = new ListViewItem(Path.GetFileNameWithoutExtension(info.Name));
-                el.SubItems.Add(Path.GetExtension(info.Name));
-                el.SubItems.Add((info.Length / 1000).ToString());
-                el.SubItems.Add(info.CreationTime.ToString());
-                list.Add(el);
-            }
-        }
-
+        
         public void Update(string path)
         {
             try
             {
                 this.path = path;
-                DirectoryInfo di = new DirectoryInfo(path);
+                var di = FolderMethods.GetDirectoryInfo(path);
                 
                 list.Clear();
 
-                UpdateDirectories(di);
-                UpdateFiles(di);
+                FolderMethods.UpdateDirectories(di, list, path);
+                FileMethods.UpdateFiles(di, list);
             }
             catch
             {
-                path = Path.GetDirectoryName(path);
+                path = FolderMethods.GetName(path);
                 //throw new Exception();
             }
         }
@@ -87,11 +50,11 @@ namespace SPBU12._1MANAGER
             if (IsDir(name))
             {
                 if (IsBack(name))
-                    path = Path.GetDirectoryName(path);
+                    path = FolderMethods.GetName(path);
                 else
                 {
-                    if (path[path.Length - 1] != Path.DirectorySeparatorChar)
-                        path += Path.DirectorySeparatorChar;
+                    if (path[path.Length - 1] != Entity.GetDirectorySeparatorChar())
+                        path += Entity.GetDirectorySeparatorChar();
                     path += name.Remove(0, 1).Remove(name.Length - 2);
                 }
             }

@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,7 +18,7 @@ namespace SPBU12._1MANAGER
         CancellationTokenSource cts;
         string filename;
 
-        //Download button click
+        // Download button click.
         private void button1_Click(object sender, EventArgs e)
 
         {
@@ -40,22 +33,22 @@ namespace SPBU12._1MANAGER
             
         }
 
-        //Download
+        // Download.
         public async void Download(CancellationToken token, IProgress<string> progress)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
  
-            //Opening a stream to file
+            // Opening a stream to file.
             WebRequest request = WebRequest.Create(DownloadTextBox.Text);
             request.Method = WebRequestMethods.File.DownloadFile;
             WebResponse response = await request.GetResponseAsync();
-            Stream responseStream = response.GetResponseStream();
+            var responseStream = Entity.GetWebStream(response);
 
-            //A file to write to
+            // A file to write to.
             filename = "downloaded.txt";
-            FileStream fs = new FileStream(@"D:\testovaya papka" + "//" + filename, FileMode.Create);
+            var fs = FileMethods.GetFileStream(@"D:\Test folder\Downloads" + "//" + filename);
 
-            //How many bytes
+            // How many bytes.
             long responsize = response.ContentLength / 1024;
 
             byte[] buffer = new byte[1024];
@@ -63,7 +56,7 @@ namespace SPBU12._1MANAGER
             bool cancelStatus = false;
             int summary = 0;
 
-            //Downloading buffers
+            // Downloading buffers.
             while ((size = await responseStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
                 progress.Report((summary / 1024).ToString() + " from " + responsize);
@@ -83,11 +76,11 @@ namespace SPBU12._1MANAGER
                 fs.Write(buffer, 0, size);
             }
 
-            //Closing file and connection
+            // Closing file and connection.
             fs.Close();
             responseStream.Close();
 
-            //If wasn't cancelled
+            // If wasn't cancelled.
             if (!cancelStatus)
                 MessageBox.Show(
                     "Download completed",

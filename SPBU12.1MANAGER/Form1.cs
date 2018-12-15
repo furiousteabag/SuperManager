@@ -1,26 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
-using System.IO.Compression;
-using System.Security.Permissions;
-using System.Text.RegularExpressions;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
-using System.Net;
-using System.Linq;
 using System.Diagnostics;
 
 namespace SPBU12._1MANAGER
 {
-
-
 
     public partial class Form1 : Form
     {
@@ -50,7 +40,7 @@ namespace SPBU12._1MANAGER
                     data.login = start.Login;
                     data.password = start.Password;
                     rootUser = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    rootUser += Path.DirectorySeparatorChar + data.login + ".dat";
+                    rootUser += Entity.GetDirectorySeparatorChar() + data.login + ".dat";
                 }
                 else
                 {
@@ -63,7 +53,7 @@ namespace SPBU12._1MANAGER
                 login = start.Login;
                 password = start.Password;
                 rootUser = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                rootUser += Path.DirectorySeparatorChar + login + ".dat";
+                rootUser += Entity.GetDirectorySeparatorChar() + login + ".dat";
 
                 if (!File.Exists(rootUser))
                 {
@@ -593,7 +583,7 @@ namespace SPBU12._1MANAGER
                 {
                     if (IsSelectedOne())
                     {
-                        ArchiveFileSecond file = new ArchiveFileSecond();
+                        ArchiveFile file = new ArchiveFile();
 
                         // A path of file to pack
                         var lw = WhichListView();
@@ -694,6 +684,7 @@ namespace SPBU12._1MANAGER
             if (IsSelectedOne())
                 Unpack();
         }
+
         //Обработка кнопки options
         private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -752,7 +743,7 @@ namespace SPBU12._1MANAGER
                 return;
             }
             string path = Root(lw) + Path.DirectorySeparatorChar + file.Text + file.SubItems[1].Text;
-            ZipFile.ExtractToDirectory(path, path.Substring(0, path.Length - 4));
+            FolderMethods.Unzip(path, path.Substring(0, path.Length - 4));
         }
 
         //---СТАТИСТИКА ПО ФАЙЛУ---
