@@ -12,6 +12,9 @@ namespace SPBU12._1MANAGER
             listView1.Items.Add(new ListViewItem(new string[] { "F5", "Copy files" }));
             listView1.Items.Add(new ListViewItem(new string[] { "F6", "Rename or move files" }));
             listView1.Items.Add(new ListViewItem(new string[] { "F7", "txt file statistics" }));
+            listView1.Items.Add(new ListViewItem(new string[] { "F8", "MD5 hash" }));
+            listView1.Items.Add(new ListViewItem(new string[] { "F9", "Cypher" }));
+            listView1.Items.Add(new ListViewItem(new string[] { "F10", "De-Cypher" }));
             listView1.Items.Add(new ListViewItem(new string[] { "Alt + F5", "Pack" }));
             listView1.Items.Add(new ListViewItem(new string[] { "Alt + F6", "Unpack" }));
             listView1.Items.Add(new ListViewItem(new string[] { "Delete", "Delete" }));

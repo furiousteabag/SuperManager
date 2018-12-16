@@ -24,11 +24,11 @@ namespace SPBU12._1MANAGER
             }
         }
 
-        public string Root {
-            get {
-                return comboBox1.Text;
-            }
-        }
+        //public string Root {
+        //    get {
+        //        return comboBox1.Text;
+        //    }
+        //}
 
         private void button2_Click(object sender, EventArgs e)
         {

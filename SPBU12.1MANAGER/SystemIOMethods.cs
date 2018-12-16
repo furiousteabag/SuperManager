@@ -7,8 +7,15 @@ using System.Windows.Forms;
 namespace SPBU12._1MANAGER {
 
     // Methods which are common to both file and folder.
-    public class Entity {
-        
+    abstract class Entity {
+
+        protected string path;
+
+        public Entity(string path)
+        {
+            this.path = path;
+        }
+
         // Returns GzipStream.
         public static GZipStream GetGZipStream(FileStream targetStream) {
             GZipStream compressionStream = new GZipStream(targetStream, CompressionMode.Compress);
@@ -26,12 +33,22 @@ namespace SPBU12._1MANAGER {
             return response.GetResponseStream();
         }
 
+        public abstract void Accept(IVisitor visitor);
+
+
 
     }
 
     // Methods about files.
-    public class FileMethods : Entity
+    class FileMethods : Entity
     {
+
+        public string path;
+
+        public FileMethods(string path) : base(path)
+        {
+            this.path = path;
+        }
 
         // Returns the path of the file.
         public static string GetName(string path)
@@ -107,6 +124,34 @@ namespace SPBU12._1MANAGER {
             return memoryStream;
         }
 
+        // MD5 hash.
+        public static void md5hash(string path) {
+            FileMethods p = new FileMethods(path);
+            IVisitor visitor = new MD5hashVisitor();
+            p.Accept(visitor);
+        }
+
+        // Cypher.
+        public static void cypher(string path)
+        {
+            FileMethods p = new FileMethods(path);
+            IVisitor visitor = new СypherVisitor();
+            p.Accept(visitor);
+        }
+
+        // De-Cypher.
+        public static void decypher(string path)
+        {
+            FileMethods p = new FileMethods(path);
+            IVisitor visitor = new DeСypherVisitor();
+            p.Accept(visitor);
+        }
+
+        // Visitor accept.
+        public override void Accept(IVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
 
 
 
@@ -121,7 +166,14 @@ namespace SPBU12._1MANAGER {
     }
 
     // Folder methods.
-    public class FolderMethods : Entity {
+    class FolderMethods : Entity {
+
+        public string path;
+
+        public FolderMethods(string path) : base(path)
+        {
+            this.path = path;
+        }
 
         // Returns the path of the folder.
         public static string GetName(string path)
@@ -191,6 +243,35 @@ namespace SPBU12._1MANAGER {
         public static bool IfExist(string path) {
             return Directory.Exists(path);
         }
+        
+        // MD5 hash.
+        public static void md5hash(string path)
+        {
+            FolderMethods p = new FolderMethods(path);
+            IVisitor visitor = new MD5hashVisitor();
+            p.Accept(visitor);
+        }
 
+        // Sypher.
+        public static void cypher(string path)
+        {
+            FolderMethods p = new FolderMethods(path);
+            IVisitor visitor = new СypherVisitor();
+            p.Accept(visitor);
+        }
+
+        // De-Sypher.
+        public static void decypher(string path)
+        {
+            FolderMethods p = new FolderMethods(path);
+            IVisitor visitor = new DeСypherVisitor();
+            p.Accept(visitor);
+        }
+
+        // Visitor accept.
+        public override void Accept(IVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

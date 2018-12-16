@@ -627,6 +627,113 @@ namespace SPBU12._1MANAGER
                     if (IsSelectedOne())
                         StatisticsTXT();
                 }
+                else if (e.KeyCode == Keys.F8)
+                {
+                    var lw = WhichListView();
+                    ListViewItem fileChosen = lw.SelectedItems[0];
+
+                    // Folder path.
+                    string path = (Root(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
+
+                    // File path (if exists).
+                    DirectoryInfo di = new DirectoryInfo(Root(WhichListView()));
+                    FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
+                    string pathfile = "";
+                    if (smFiles.Count()>0) {
+                        pathfile = smFiles[0].FullName;
+                    }
+                    
+                    // If folder.
+                    if (FolderMethods.IfExist(path))
+                    {
+                        FolderMethods.md5hash(path);
+                    }
+                    // If file.
+                    else if (FileMethods.IfExist(pathfile))
+                    {
+                        FileMethods.md5hash(pathfile);
+                    }
+                    // If something else.
+                    else MessageBox.Show(
+                        "Not a file or folder",
+                        "MD-5 hash",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                                   );
+                    
+                }
+                else if (e.KeyCode == Keys.F9)
+                {
+                    var lw = WhichListView();
+                    ListViewItem fileChosen = lw.SelectedItems[0];
+
+                    // Folder path.
+                    string path = (Root(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
+
+                    // File path (if exists).
+                    DirectoryInfo di = new DirectoryInfo(Root(WhichListView()));
+                    FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
+                    string pathfile = "";
+                    if (smFiles.Count() > 0)
+                    {
+                        pathfile = smFiles[0].FullName;
+                    }
+
+                    // If folder.
+                    if (FolderMethods.IfExist(path))
+                    {
+                        FolderMethods.cypher(path);
+                    }
+                    // If file.
+                    else if (FileMethods.IfExist(pathfile))
+                    {
+                        FileMethods.cypher(pathfile);
+                    }
+                    // If something else.
+                    else MessageBox.Show(
+                        "Not a file or folder",
+                        "MD-5 hash",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                                   );
+
+                }
+                else if (e.KeyCode == Keys.F10)
+                {
+                    var lw = WhichListView();
+                    ListViewItem fileChosen = lw.SelectedItems[0];
+
+                    // Folder path.
+                    string path = (Root(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
+
+                    // File path (if exists).
+                    DirectoryInfo di = new DirectoryInfo(Root(WhichListView()));
+                    FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
+                    string pathfile = "";
+                    if (smFiles.Count() > 0)
+                    {
+                        pathfile = smFiles[0].FullName;
+                    }
+
+                    // If folder.
+                    if (FolderMethods.IfExist(path))
+                    {
+                        FolderMethods.decypher(path);
+                    }
+                    // If file.
+                    else if (FileMethods.IfExist(pathfile))
+                    {
+                        FileMethods.decypher(pathfile);
+                    }
+                    // If something else.
+                    else MessageBox.Show(
+                        "Not a file or folder",
+                        "MD-5 hash",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                                   );
+
+                }
                 else if (e.Alt && e.KeyCode == Keys.Left)
                 {
                     if (WhichListView() == listView1)
