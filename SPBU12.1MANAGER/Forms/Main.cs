@@ -11,163 +11,134 @@ using System.Diagnostics;
 
 namespace SPBU12._1MANAGER
 {
-
-    public partial class Form1 : Form
+    public partial class Main : Form, IView
     {
-        //Инициализация переменных
-        private string rootLeft, rootRight;
-        Dictionary<string, string> dirs;
-        ListElements listLeft, listRight;
-        FileSystemWatcher watcherLeft, watcherRight;
-        bool isChanged1, isChanged2;
+        /*
+         * Variables initializing
+         */
 
-        ListView lwOnline;
+        public UserData data { get; set; }
 
-        public static UserData data;
-        private string login, password, rootUser;
+        public string login { get; set; }
+        public string password { get; set; }
+        public string rootUser { get; set; }
 
-        //Окно логина
-        private void Initialization()
-        {
-            Start start = new Start();
-            DialogResult r = start.ShowDialog();
+        public string txtStatisticsFilePath { get; set; }
 
-            if (r == DialogResult.Yes)
-            {
-                if (start.Login != "" && start.Password != "")
-                {
-                    data = new UserData();
-                    data.login = start.Login;
-                    data.password = start.Password;
-                    rootUser = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    rootUser += Entity.GetDirectorySeparatorChar() + data.login + ".dat";
-                }
-                else
-                {
-                    MessageBox.Show("Enter something");
-                    Initialization();
-                }
-            }
-            else if (r == DialogResult.OK)
-            {
-                login = start.Login;
-                password = start.Password;
-                rootUser = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                rootUser += Entity.GetDirectorySeparatorChar() + login + ".dat";
+        public Dictionary<string, string> dirs { get; set; }
 
-                if (!File.Exists(rootUser))
-                {
-                    MessageBox.Show("Incorrect login");
-                    Initialization();
-                }
-                else
-                {
-                    BinaryFormatter binFormat = new BinaryFormatter();
-                    Stream fStream = File.Open(rootUser, FileMode.Open);
-                    data = (UserData)binFormat.Deserialize(fStream);
-                    fStream.Close();
+        public bool isChanged1 { get; set; }
+        public bool isChanged2 { get; set; }
 
-                    if (data.password != password)
-                    {
-                        MessageBox.Show("Incorrect password");
-                        Initialization();
-                    }
-                }
-            }
-            else if (r == DialogResult.Cancel)
-            {
-                Environment.Exit(0);
-            }
+        public string rootLeft { get; set; }
+        public string rootRight { get; set; }
 
-            UpdateForm();
-        }
+        public FileSystemWatcher watcherLeft { get; set; }
+        public FileSystemWatcher watcherRight { get; set; }
 
-        //Передача кастомных данных в форму
-        private void UpdateForm()
-        {
-            this.password = data.password;
-            this.Font = data.mainFont;
-            listView1.BackColor = data.color1;
-            listView2.BackColor = data.color1;
-            listView1.Font = data.fileFont;
-            listView2.Font = data.fileFont;
-        }
+        public ListElements listLeft { get; set; }
+        public ListElements listRight { get; set; }
 
-        //watcher - онлайн обновление директорий
-        private void WatchersInitialize()
-        {
-            timer1.Interval = 10;
-            timer1.Tick += timer1_Tick;
-            timer1.Enabled = true;
+        public ListView lwOnline { get; set; }
+        public ListView getlistView1 { get { return listView1; } set { } }
+        public ListView getlistView2 { get { return listView2; } set { } }
+        public ComboBox getcomboBox1 { get { return comboBox1; } set { } }
+        public ComboBox getcomboBox2 { get { return comboBox2; } set { } }
+        public TextBox gettextBox4 { get { return textBox4; } set { } }
+        public TextBox gettextBox5 { get { return textBox5; } set { } }
 
-            watcherLeft = new FileSystemWatcher();
-            watcherRight = new FileSystemWatcher();
+        /*
+         * Initializing interface events.
+         */
 
-            watcherLeft.Changed += UpdateLeft;
-            watcherLeft.Created += UpdateLeft;
-            watcherLeft.Deleted += UpdateLeft;
-            watcherLeft.Renamed += UpdateLeft;
+        public event EventHandler helpToolStripMenuItem_Click_interface;
+        public event EventHandler comboBox1_SelectedValueChanged_interface;
+        public event EventHandler comboBox2_SelectedValueChanged_interface;
+        public event EventHandler buttonLeftRoot_Click_interface;
+        public event EventHandler buttonLeftPrev_Click_inteface;
+        public event EventHandler buttonRightRoot_Click_interface;
+        public event EventHandler buttonRightPrev_Click_inteface;
+        public event EventHandler listView1_DoubleClick_interface;
+        public event EventHandler listView2_DoubleClick_interface;
+        public event FileSystemEventHandler UpdateLeft_interface;
+        public event FileSystemEventHandler UpdateRight_interface;
+        public event KeyEventHandler File_Statistics_interface;
 
-            watcherRight.Changed += UpdateRight;
-            watcherRight.Created += UpdateRight;
-            watcherRight.Deleted += UpdateRight;
-            watcherRight.Renamed += UpdateRight;
-
-            isChanged1 = false;
-            isChanged2 = false;
-        }
-
-        //Инициализация формы
-        public Form1()
+        // Form initialization.
+        public Main()
         {
             InitializeComponent();
+
+            // Login box.
             Initialization();
 
-            WatchersInitialize();
+            // Attaching presenter.
+            Presenter presenter = new Presenter(this);
 
-            dirs = new Dictionary<string, string>();
-
+            // Initializing lists of elements.
             listLeft = new ListElements();
             listRight = new ListElements();
 
+            // Initializing dictionary.
+            dirs = new Dictionary<string, string>();
+
+            // Initializing watchers.
+            WatchersInitialize();
+
+            // Filling the comboboxes.
             DriveInfo[] drives = DriveInfo.GetDrives();
             foreach (DriveInfo info in drives)
             {
                 try
                 {
-                    comboBox1.Items.Add(info.Name + "        " + info.VolumeLabel);
-                    comboBox2.Items.Add(info.Name + "        " + info.VolumeLabel);
+                    comboBox1.Items.Add(info.Name);
+                    comboBox2.Items.Add(info.Name);
                 }
-                catch
-                {
-                }
+                catch { }
             }
 
+            // Setting text to combobox.
             comboBox1.Text = comboBox1.Items[0].ToString();
             comboBox2.Text = comboBox2.Items[0].ToString();
 
+            // Current form - left form.
             lwOnline = listView1;
         }
 
-        //Апдейт левой формы
-        private void UpdateLeft(object sendler, FileSystemEventArgs e)
-        {
-            isChanged1 = true;
-        }
-
-        //Апдейт правой формы
-        private void UpdateRight(object sendler, FileSystemEventArgs e)
-        {
-            isChanged2 = true;
-        }
-
-        //Директория формы
-        public string Root(ListView lw)
+        // Return path of listView.
+        public string PathOfListView(ListView lw)
         {
             if (lw == listView1)
                 return rootLeft;
             return rootRight;
         }
+
+        // Returns the curent path of another listview
+        private string PathOfSecondListView(string startDir)
+        {
+            if (startDir == rootLeft)
+                return rootRight;
+            return rootLeft;
+        }
+
+
+
+
+
+
+        // Tick if left form has changed.
+        private void UpdateLeft(object sendler, FileSystemEventArgs e)
+        {
+            UpdateLeft_interface(sendler, e);
+        }
+
+        // Tick if right form has changed.
+        private void UpdateRight(object sendler, FileSystemEventArgs e)
+        {
+            UpdateRight_interface(sendler, e);
+        }
+
+
 
         //Список элементов на форме
         private ListElements ListE(ListView lw)
@@ -177,8 +148,10 @@ namespace SPBU12._1MANAGER
             return listRight;
         }
 
+        delegate TextBox TB();
+
         //Обновление формы
-        private void UpdateListView(ListView lw)
+        public void UpdateListView(ListView lw)
         {
             if (lw.SelectedItems.Count > 0 && lw == WhichListView() && Path.GetFileName(lw.SelectedItems[0].Text) != lw.SelectedItems[0].Text)
             {
@@ -188,7 +161,7 @@ namespace SPBU12._1MANAGER
                     rootRight = lw.SelectedItems[0].Text;
             }
 
-            ListE(lw).Update(Root(lw));
+            ListE(lw).Update(PathOfListView(lw));
             lw.Items.Clear();
 
             foreach (ListViewItem item in ListE(lw).list)
@@ -208,7 +181,7 @@ namespace SPBU12._1MANAGER
                 return textBox5;
             });
 
-            tb.Invoke().Text = Root(lw);
+            tb.Invoke().Text = PathOfListView(lw);
 
             if (lw == listView1)
             {
@@ -222,12 +195,12 @@ namespace SPBU12._1MANAGER
             }
         }
 
-        delegate TextBox TB();
+
 
         delegate DriveInfo Disk();
 
         //Меняет имя пути в правом или левом окне
-        private void PathName(string name, bool left)
+        public void PathName(string name, bool left)
         {
             name = name.Substring(0, name.IndexOf(" "));
             if (left)
@@ -239,124 +212,58 @@ namespace SPBU12._1MANAGER
         //Смена диска (левое окно)
         private void comboBox1_SelectedValueChanged(object sender, EventArgs e)
         {
-            PathName(comboBox1.Text, true);
-            UpdateListView(listView1);
+            comboBox1_SelectedValueChanged_interface(sender, e);
         }
         //Смена диска (правое окно)
         private void comboBox2_SelectedValueChanged(object sender, EventArgs e)
         {
-            PathName(comboBox2.Text, false);
-            UpdateListView(listView2);
+            comboBox2_SelectedValueChanged_interface(sender, e);
         }
 
-        //Обработка двойного нажатия на элементы формы
-        private void DoubleClickLV(ListView lw)
-        {
-            string path = ListE(lw).DoubleClick(lw, Root(lw));
-
-            if (lw == listView1)
-                rootLeft = path;
-            else
-                rootRight = path;
-
-            UpdateListView(lw);
-        }
         //Обработка двойного нажатия на элементы первой формы
         private void listView1_DoubleClick(object sender, EventArgs e)
         {
-            DoubleClickLV(listView1);
+            listView1_DoubleClick_interface(sender, e);
         }
         //Обработка двойного нажатия на элементы первой формы
         private void listView2_DoubleClick(object sender, EventArgs e)
         {
-            DoubleClickLV(listView2);
+            listView2_DoubleClick_interface(sender, e);
         }
 
         //Кнопки возврата в левом окне
         private void button4_Click(object sender, EventArgs e)
         {
-            if (Path.GetDirectoryName(rootLeft) != null)
-                rootLeft = Path.GetDirectoryName(rootLeft);
-            UpdateListView(listView1);
+            buttonLeftPrev_Click_inteface(sender, e);
         }
         private void button3_Click(object sender, EventArgs e)
         {
-            if (Path.GetDirectoryName(rootLeft) != null)
-                rootLeft = Path.GetPathRoot(rootLeft);
-            UpdateListView(listView1);
+            buttonLeftRoot_Click_interface(sender, e);
         }
 
         //Кнопки возврата в правом окне
         private void button5_Click(object sender, EventArgs e)
         {
-            if (Path.GetDirectoryName(rootRight) != null)
-                rootRight = Path.GetDirectoryName(rootRight);
-            UpdateListView(listView2);
+            buttonRightPrev_Click_inteface(sender, e);
         }
         private void button6_Click(object sender, EventArgs e)
         {
-            if (Path.GetDirectoryName(rootRight) != null)
-                rootRight = Path.GetPathRoot(rootRight);
-            UpdateListView(listView2);
+            buttonRightRoot_Click_interface(sender, e);
         }
 
 
-        //Вызов окна help
-        private void Help()
-        {
-            HelpBox hb = new HelpBox();
-            hb.Font = data.dialogFont;
-            hb.ShowDialog();
-        }
 
-        //Возвращает директорию диска в текущем окне
-        private string EndDir(string startDir)
-        {
-            if (startDir == rootLeft)
-                return rootRight;
-            return rootLeft;
-        }
 
-        //Метод копирования директории
-        private void CopyDir(string nameDir, string endDir)
-        {
-            Directory.CreateDirectory(endDir + Path.DirectorySeparatorChar + Path.GetFileName(nameDir));
 
-            DirectoryInfo di = new DirectoryInfo(nameDir);
-            DirectoryInfo[] directories = di.GetDirectories();
-            FileInfo[] files = di.GetFiles();
 
-            foreach (DirectoryInfo info in directories)
-            {
-                CopyDir(nameDir + Path.DirectorySeparatorChar + info.Name, endDir);
-            }
 
-            foreach (FileInfo info in files)
-            {
-                CopyFile(info.Name, nameDir, endDir);
-            }
-        }
 
-        //Метод копирования файла
-        private void CopyFile(string nameFile, string startDir, string endDir)
-        {
-            using (FileStream SourceStream = File.Open(startDir + Path.DirectorySeparatorChar + nameFile, FileMode.Open))
-            {
-                using (FileStream DestinationStream = File.Create(endDir + Path.DirectorySeparatorChar + nameFile))
-                {
-                    SourceStream.CopyTo(DestinationStream);
-                }
-            }
-        }
 
-        //Если существует - возвращает false
-        private bool IsDir(string path)
-        {
-            return File.Exists(path) ? false : true;
-        }
+
+
 
         //Вывод окна копирования
-        private bool ShowWind(string root, string label)
+        private bool ShowWindCopy(string root, string label)
         {
             CopyBox cb = new CopyBox(root, label);
             cb.Font = data.dialogFont;
@@ -383,27 +290,32 @@ namespace SPBU12._1MANAGER
 
         }
 
-        //Скопировать элемент
-        private void CopyElement(ListView lw, string item)
+        //Окно удаления
+        private bool ShowWindDelete(int k)
         {
-            string startDirectory = Root(lw);
-            string endDirectory = EndDir(startDirectory);
+            if (MessageBox.Show("Do you really want to delete " + k + " file(s)?", "Custom file manager", MessageBoxButtons.OKCancel, MessageBoxIcon.Stop) == DialogResult.OK)
+                return true;
+            return false;
+        }
 
-            if (IsDir(startDirectory + Path.DirectorySeparatorChar + item))
-                CopyDir(startDirectory + Path.DirectorySeparatorChar + item.Substring(1).Remove(item.Length - 2), endDirectory);
+        //Скопировать элемент
+        private void CopyFileOrFolder(string startDirectory, string endDirectory, string item)
+        {
+            if (FileMethods.IfExist(startDirectory + Entity.GetDirectorySeparatorChar() + item))
+                FolderMethods.CopyDir(startDirectory + Entity.GetDirectorySeparatorChar() + item.Substring(1).Remove(item.Length - 2), endDirectory);
             else
-                CopyFile(item, startDirectory, endDirectory);
+                FileMethods.CopyFile(item, startDirectory, endDirectory);
         }
 
         //Скопировать файлы
         private void IsCopy()
         {
             var lw = WhichListView();
-            if (ShowWind(EndDir(Root(lw)), "Copy " + lw.SelectedItems.Count + " file(s) to:"))
+            if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Copy " + lw.SelectedItems.Count + " file(s) to:"))
             {
                 foreach (ListViewItem file in lw.SelectedItems)
                 {
-                    CopyElement(lw, file.Text + file.SubItems[1].Text);
+                    CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), file.Text + file.SubItems[1].Text);
                 }
             }
         }
@@ -417,15 +329,15 @@ namespace SPBU12._1MANAGER
         //Переместить элемент
         private void MoveElement(ListView lw, string el)
         {
-            CopyElement(lw, el);
-            DeleteElement(Root(lw), el);
+            CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), el);
+            Entity.DeleteElement(PathOfListView(lw), el);
         }
 
         //Переместить файлы
         private void MoveF()
         {
             var lw = WhichListView();
-            if (ShowWind(EndDir(Root(lw)), "Rename/move " + lw.SelectedItems.Count + " file(s) to:"))
+            if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Rename/move " + lw.SelectedItems.Count + " file(s) to:"))
             {
                 foreach (ListViewItem item in lw.SelectedItems)
                 {
@@ -434,48 +346,25 @@ namespace SPBU12._1MANAGER
             }
         }
 
-        //Удалить элемент
-        private void DeleteElement(string root, string name)
-        {
-            if (!IsDir(root + Path.DirectorySeparatorChar + name))
-                File.Delete(root + Path.DirectorySeparatorChar + name);
-            else
-            {
-                string pathDir = root + Path.DirectorySeparatorChar + name.Substring(1, name.Length - 2);
-                Directory.Delete(pathDir, true);
-            }
-        }
 
-        //Окно удаления
-        private bool MBShowOK(int k)
-        {
-            if (MessageBox.Show("Do you really want to delete " + k + " file(s)?", "Custom file manager", MessageBoxButtons.OKCancel, MessageBoxIcon.Stop) == DialogResult.OK)
-                return true;
-            return false;
-        }
+
+
 
         //Удалить несколько выбранных элементов
         private void Delete()
         {
             var lw = WhichListView();
-            if (MBShowOK(lw.SelectedItems.Count))
+            if (ShowWindDelete(lw.SelectedItems.Count))
             {
                 foreach (ListViewItem item in lw.SelectedItems)
                 {
                     string name = item.Text + item.SubItems[1].Text;
-                    DeleteElement(Root(lw), name);
+                    Entity.DeleteElement(PathOfListView(lw), name);
                 }
             }
         }
 
-        //Переименовать элемент
-        private void RenameElement(string newPath, string path)
-        {
-            if (IsDir(path))
-                Directory.Move(path, newPath);
-            else
-                File.Move(path, newPath);
-        }
+
 
 
 
@@ -552,21 +441,26 @@ namespace SPBU12._1MANAGER
             if (IsSelected())
             {
                 ListViewItem selectFile = WhichListView().SelectedItems[0];
-                string fName = Root(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text;
-                string dName = Root(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text.Substring(1).Remove(selectFile.Text.Length - 2);
+                string fName = PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text;
+                string dName = PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text.Substring(1).Remove(selectFile.Text.Length - 2);
                 (new SearchPatternsParallels(new SearchHandler())).Search(fName, dName);
             }
         }
 
         //Сочетания
-        private void Form1_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+        private void Main_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
             try
             {
                 if (e.KeyCode == Keys.Enter)
                 {
                     if (IsSelected())
-                        DoubleClickLV(WhichListView());
+                    {
+                        if (WhichListView() == listView1)
+                            listView1_DoubleClick_interface(sender, e);
+                        else listView2_DoubleClick_interface(sender, e);
+                    }
+
                 }
                 else if (e.Alt && e.KeyCode == Keys.F1)
                 {
@@ -588,7 +482,7 @@ namespace SPBU12._1MANAGER
                         // A path of file to pack
                         var lw = WhichListView();
                         ListViewItem fileChosen = lw.SelectedItems[0];
-                        string path = Root(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text;
+                        string path = PathOfListView(WhichListView()) + Entity.GetDirectorySeparatorChar() + fileChosen.Text;
 
                         file.Pack(path);
                     }
@@ -600,7 +494,7 @@ namespace SPBU12._1MANAGER
                 }
                 else if (e.KeyCode == Keys.F1)
                 {
-                    Help();
+                    helpToolStripMenuItem_Click_interface(sender, e);
                 }
                 else if (e.KeyCode == Keys.F2)
                 {
@@ -625,7 +519,15 @@ namespace SPBU12._1MANAGER
                 else if (e.KeyCode == Keys.F7)
                 {
                     if (IsSelectedOne())
-                        StatisticsTXT();
+                    {
+                        var lw = WhichListView();
+                        ListViewItem file = lw.SelectedItems[0];
+                        //Creating a file path
+                        string filePath = PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + file.Text.Substring(0) + ".txt";
+                        txtStatisticsFilePath = filePath;
+                        File_Statistics_interface(sender, e);
+                    }
+                    
                 }
                 else if (e.KeyCode == Keys.F8)
                 {
@@ -633,16 +535,17 @@ namespace SPBU12._1MANAGER
                     ListViewItem fileChosen = lw.SelectedItems[0];
 
                     // Folder path.
-                    string path = (Root(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
+                    string path = (PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
 
                     // File path (if exists).
-                    DirectoryInfo di = new DirectoryInfo(Root(WhichListView()));
+                    DirectoryInfo di = new DirectoryInfo(PathOfListView(WhichListView()));
                     FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
                     string pathfile = "";
-                    if (smFiles.Count()>0) {
+                    if (smFiles.Count() > 0)
+                    {
                         pathfile = smFiles[0].FullName;
                     }
-                    
+
                     // If folder.
                     if (FolderMethods.IfExist(path))
                     {
@@ -660,7 +563,7 @@ namespace SPBU12._1MANAGER
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
                                    );
-                    
+
                 }
                 else if (e.KeyCode == Keys.F9)
                 {
@@ -668,10 +571,10 @@ namespace SPBU12._1MANAGER
                     ListViewItem fileChosen = lw.SelectedItems[0];
 
                     // Folder path.
-                    string path = (Root(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
+                    string path = (PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
 
                     // File path (if exists).
-                    DirectoryInfo di = new DirectoryInfo(Root(WhichListView()));
+                    DirectoryInfo di = new DirectoryInfo(PathOfListView(WhichListView()));
                     FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
                     string pathfile = "";
                     if (smFiles.Count() > 0)
@@ -704,10 +607,10 @@ namespace SPBU12._1MANAGER
                     ListViewItem fileChosen = lw.SelectedItems[0];
 
                     // Folder path.
-                    string path = (Root(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
+                    string path = (PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
 
                     // File path (if exists).
-                    DirectoryInfo di = new DirectoryInfo(Root(WhichListView()));
+                    DirectoryInfo di = new DirectoryInfo(PathOfListView(WhichListView()));
                     FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
                     string pathfile = "";
                     if (smFiles.Count() > 0)
@@ -782,7 +685,7 @@ namespace SPBU12._1MANAGER
         //Обработка кнопки help
         private void helpToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Help();
+            helpToolStripMenuItem_Click_interface(sender, e);
         }
 
         //Обработка кнопки разархивации
@@ -849,101 +752,111 @@ namespace SPBU12._1MANAGER
                                   );
                 return;
             }
-            string path = Root(lw) + Path.DirectorySeparatorChar + file.Text + file.SubItems[1].Text;
+            string path = PathOfListView(lw) + Path.DirectorySeparatorChar + file.Text + file.SubItems[1].Text;
             FolderMethods.Unzip(path, path.Substring(0, path.Length - 4));
         }
 
-        //---СТАТИСТИКА ПО ФАЙЛУ---
+        
 
-        private void StatisticsTXT()
+        /*
+         * 
+         * Form methods.
+         * 
+         */
+
+        // Initializing form with user information.
+        private void Initialization()
         {
-            var lw = WhichListView();
-            ListViewItem file = lw.SelectedItems[0];
+            Start start = new Start();
+            DialogResult r = start.ShowDialog();
 
-            try
+            if (r == DialogResult.Yes)
             {
-                //Length of top words
-                var topWordsLength = 5;
-
-                //Starting work message
-                MessageBox.Show(
-                       "Starting work...",
-                       "File statistics",
-                       MessageBoxButtons.OK,
-                       MessageBoxIcon.Asterisk
-                                       );
-
-                string output = "";
-                var lineCount = 0;
-                var unicWordCount = 0;
-
-                //Creating a file path
-                string filePath = Root(WhichListView()) + Path.DirectorySeparatorChar + file.Text.Substring(0) + ".txt";
-
-                //Initializing timer
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                byte[] b = File.ReadAllBytes(filePath);
-
-
-                //Counting the number of lines
-                Task taskA = Task.Run(() =>
+                if (start.Login != "" && start.Password != "")
                 {
-                    using (var reader = File.OpenText(filePath))
-                    {
-                        while (reader.ReadLine() != null)
-                            lineCount++;
-                    }
-                    output += "Number of lines: " + lineCount + "\n";
-                });
-
-                //Number of words, number of unic words, top 10 words
-                Task taskB = Task.Run(() =>
+                    data = new UserData();
+                    data.login = start.Login;
+                    data.password = start.Password;
+                    rootUser = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    rootUser += Entity.GetDirectorySeparatorChar() + data.login + ".dat";
+                }
+                else
                 {
-                    //Creating an array of words
-                    string textToAnalyse = Encoding.Default.GetString(b).ToLower().Replace(",", "").Replace(".", "").Replace("(", "").Replace(")", "").Replace("-", "");
-                    string[] arrayOfWords = textToAnalyse.Split();
-                    //Counting the number of words
-                    output += "Number of words: " + arrayOfWords.Length + "\n";
-
-                    //Counting the number of unic words
-                    unicWordCount = (from word in arrayOfWords.AsParallel() select word).Distinct().Count();
-                    output += "Number of unic words: " + unicWordCount + "\n";
-
-                    //Top 10 words
-                    var presortedList = arrayOfWords.GroupBy(s => s).Where(g => g.Count() > 1).OrderByDescending(g => g.Count()).Select(g => g.Key).ToList();
-                    presortedList.Remove("");
-                    var sortedList = (from word in presortedList where word.Length > topWordsLength select word);
-
-                    var topTenWords = sortedList.Take(10);
-
-                    output += "Top ten words with length > " + topWordsLength + ":\n";
-                    int i = 1;
-                    foreach (var word in topTenWords)
-                    {
-                        output += i + ") " + word + "\n";
-                        i++;
-                    }
-                });
-
-                //MessageBox
-                var finalTask = Task.Factory.ContinueWhenAll(new Task[] { taskA, taskB }, ant =>
-                {
-                    stopwatch.Stop();
-                    output += "Time: " + stopwatch.Elapsed;
-                    MessageBox.Show(
-                        output,
-                        "File statistics",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                                   );
-                });
-
+                    MessageBox.Show("Enter something");
+                    Initialization();
+                }
             }
-            catch (Exception ex)
+            else if (r == DialogResult.OK)
             {
-                MessageBox.Show(ex.Message);
+                login = start.Login;
+                password = start.Password;
+                rootUser = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                rootUser += Entity.GetDirectorySeparatorChar() + login + ".dat";
+
+                if (!File.Exists(rootUser))
+                {
+                    MessageBox.Show("Incorrect login");
+                    Initialization();
+                }
+                else
+                {
+                    BinaryFormatter binFormat = new BinaryFormatter();
+                    Stream fStream = File.Open(rootUser, FileMode.Open);
+                    data = (UserData)binFormat.Deserialize(fStream);
+                    fStream.Close();
+
+                    if (data.password != password)
+                    {
+                        MessageBox.Show("Incorrect password");
+                        Initialization();
+                    }
+                }
             }
+            else if (r == DialogResult.Cancel)
+            {
+                Environment.Exit(0);
+            }
+
+            UpdateForm();
         }
+
+        // Trasfering user data to form.
+        private void UpdateForm()
+        {
+            this.password = data.password;
+            this.Font = data.mainFont;
+            listView1.BackColor = data.color1;
+            listView2.BackColor = data.color1;
+            listView1.Font = data.fileFont;
+            listView2.Font = data.fileFont;
+        }
+
+        // Initializing watchers.
+        private void WatchersInitialize()
+        {
+            timer1.Interval = 10;
+            timer1.Tick += timer1_Tick;
+            timer1.Enabled = true;
+
+
+            watcherLeft = new FileSystemWatcher();
+            watcherRight = new FileSystemWatcher();
+
+            watcherLeft.Changed += UpdateLeft;
+            watcherLeft.Created += UpdateLeft;
+            watcherLeft.Deleted += UpdateLeft;
+            watcherLeft.Renamed += UpdateLeft;
+
+            watcherRight.Changed += UpdateRight;
+            watcherRight.Created += UpdateRight;
+            watcherRight.Deleted += UpdateRight;
+            watcherRight.Renamed += UpdateRight;
+
+            isChanged1 = false;
+            isChanged2 = false;
+        }
+
     }
+
+
 }

@@ -6,6 +6,13 @@ using System.Windows.Forms;
 
 namespace SPBU12._1MANAGER
 {
+
+    public class SearchBoxMethods {
+
+
+
+    }
+
     public partial class SearchBox : Form
     {
         private string root;

@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using Ionic.Zip;
 using System.IO.Compression;
 using System.Net;
+using System.Security.Cryptography;
 using System.Windows.Forms;
 
 namespace SPBU12._1MANAGER {
@@ -33,6 +35,28 @@ namespace SPBU12._1MANAGER {
             return response.GetResponseStream();
         }
 
+        // Move element.
+        public static void MoveElement(string newPath, string path)
+        {
+            if (FolderMethods.IfExist(path))
+                FolderMethods.MoveFolder(path, newPath);
+            else
+                FileMethods.MoveFile(path, newPath);
+        }
+
+        //Удалить элемент
+        public static void DeleteElement(string root, string name)
+        {
+            if (!FileMethods.IfExist(root + Path.DirectorySeparatorChar + name))
+                File.Delete(root + Path.DirectorySeparatorChar + name);
+            else
+            {
+                string pathDir = root + Path.DirectorySeparatorChar + name.Substring(1, name.Length - 2);
+                Directory.Delete(pathDir, true);
+            }
+        }
+
+
         public abstract void Accept(IVisitor visitor);
 
 
@@ -56,11 +80,63 @@ namespace SPBU12._1MANAGER {
             return Path.GetFileName(path);
         }
 
+        // Delete the file.
+        public static void DeleteFile(string path)
+        {
+            File.Delete(path);
+        }
+
+        // Move the file.
+        public static void MoveFile(string pathFrom, string pathTo)
+        {
+            File.Move(pathFrom, pathTo);
+        }
+
         // Returns the list of files from path.
         public static FileInfo[] GetFileInfos(string path)
         {
             DirectoryInfo di = new DirectoryInfo(path);
             FileInfo[] files = di.GetFiles();
+            return files;
+        }
+
+        // Returns Fileinfo.
+        public static FileStream GetFileStream1(string sInputFilename)
+        {
+            FileStream fsInput = new FileStream(sInputFilename,
+               FileMode.Open,
+               FileAccess.Read);
+            return fsInput;
+        }
+
+        // Returns Fileinfo.
+        public static FileStream GetFileStream2(string sOutputFilename)
+        {
+            FileStream fsEncrypted = new FileStream(sOutputFilename,
+               FileMode.Create,
+               FileAccess.Write);
+            return fsEncrypted;
+        }
+
+        // Returns StreamWriter.
+        public static StreamWriter GetStreamWriter(string sOutputFilename)
+        {
+            StreamWriter fsDecrypted = new StreamWriter(sOutputFilename);
+            return fsDecrypted;
+        }
+
+        // Returns StreamReader.
+        public static StreamReader GetStreamReader(CryptoStream cryptostreamDecr)
+        {
+            StreamReader sr = new StreamReader(cryptostreamDecr);
+            return sr;
+        }
+
+        // Returns the list of files from path with search filters from every podcategory.
+        public static FileInfo[] GetFileInfosForSearch(string path)
+        {
+            DirectoryInfo di = new DirectoryInfo(path);
+            FileInfo[] files = di.GetFiles("*", SearchOption.AllDirectories);
             return files;
         }
 
@@ -83,6 +159,30 @@ namespace SPBU12._1MANAGER {
             File.Copy(pathfile, pathfile + "_ZIP" + Path.DirectorySeparatorChar + Path.GetFileName(pathfile));
         }
 
+        // If the file exists.
+        public static bool IfExist(string path)
+        {
+            return File.Exists(path);
+        }
+
+        // Read bytes.
+        public static byte[] ReadBytes(string path)
+        {
+            return File.ReadAllBytes(path);
+        }
+
+        //Метод копирования файла
+        public static void CopyFile(string nameFile, string startDir, string endDir)
+        {
+            using (FileStream SourceStream = File.Open(startDir + Path.DirectorySeparatorChar + nameFile, FileMode.Open))
+            {
+                using (FileStream DestinationStream = File.Create(endDir + Path.DirectorySeparatorChar + nameFile))
+                {
+                    SourceStream.CopyTo(DestinationStream);
+                }
+            }
+        }
+
         // Updates files list.
         public static void UpdateFiles(DirectoryInfo di, List<ListViewItem> list)
         {
@@ -98,24 +198,13 @@ namespace SPBU12._1MANAGER {
             }
         }
 
-        // If the file exists.
-        public static bool IfExist(string path)
-        {
-            return File.Exists(path);
-        }
-
-        // Read bytes.
-        public static byte[] ReadBytes(string path)
-        {
-            return File.ReadAllBytes(path);
-        }
-
         // Returns memorystream.
         public static MemoryStream Memory(byte[] encryptedTextBytes)
         {
             MemoryStream memoryStream = new MemoryStream(encryptedTextBytes);
             return memoryStream;
         }
+
 
         // Returns memorystream.
         public static MemoryStream Memory()
@@ -193,10 +282,16 @@ namespace SPBU12._1MANAGER {
             Directory.Delete(path, true);
         }
 
+        // Move the folder.
+        public static void MoveFolder(string pathFrom, string pathTo)
+        {
+            Directory.Move(pathFrom, pathTo);
+        }
+
         // Creates a zip archive of a folder.
         public static void CreateZipFrom(string pathfile, string compressfile)
         {
-            ZipFile.CreateFromDirectory(pathfile, compressfile);
+            System.IO.Compression.ZipFile.CreateFromDirectory(pathfile, compressfile);
         }
 
         // Returns the list of directories from path.
@@ -207,16 +302,24 @@ namespace SPBU12._1MANAGER {
             return directories;
         }
 
-        // Returns the directory info.
-        public static DirectoryInfo GetDirectoryInfo(string path)
+        //Метод копирования директории
+        public static void CopyDir(string nameDir, string endDir)
         {
-            DirectoryInfo di = new DirectoryInfo(path);
-            return di;
-        }
+            Directory.CreateDirectory(endDir + Path.DirectorySeparatorChar + Path.GetFileName(nameDir));
 
-        // Creates an unzipped folder near the zip.
-        public static void Unzip(string pathToUzip, string whereToUnzip) {
-            ZipFile.ExtractToDirectory(pathToUzip, whereToUnzip);
+            DirectoryInfo di = new DirectoryInfo(nameDir);
+            DirectoryInfo[] directories = di.GetDirectories();
+            FileInfo[] files = di.GetFiles();
+
+            foreach (DirectoryInfo info in directories)
+            {
+                CopyDir(nameDir + Path.DirectorySeparatorChar + info.Name, endDir);
+            }
+
+            foreach (FileInfo info in files)
+            {
+                FileMethods.CopyFile(info.Name, nameDir, endDir);
+            }
         }
 
         // Updates Directory list.
@@ -237,6 +340,18 @@ namespace SPBU12._1MANAGER {
                 el.SubItems.Add(info.CreationTime.ToString());
                 list.Add(el);
             }
+        }
+
+        // Returns the directory info.
+        public static DirectoryInfo GetDirectoryInfo(string path)
+        {
+            DirectoryInfo di = new DirectoryInfo(path);
+            return di;
+        }
+
+        // Creates an unzipped folder near the zip.
+        public static void Unzip(string pathToUzip, string whereToUnzip) {
+            System.IO.Compression.ZipFile.ExtractToDirectory(pathToUzip, whereToUnzip);
         }
 
         // If the directory exists.
@@ -273,5 +388,21 @@ namespace SPBU12._1MANAGER {
         {
             visitor.Visit(this);
         }
+
+        // Visitor accept.
+        public  void wew()
+        {
+            using (Ionic.Zip.ZipFile zip = new Ionic.Zip.ZipFile())
+            {
+                // add this map file into the "images" directory in the zip archive
+                zip.AddFile("c:\\images\\personal\\7440-N49th.png", "images");
+                // add the report into a different directory in the archive
+                zip.AddFile("c:\\Reports\\2008-Regional-Sales-Report.pdf", "files");
+                zip.AddFile("ReadMe.txt");
+                zip.Save("MyZipFile.zip");
+            }
+
+        }
     }
+    
 }

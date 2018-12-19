@@ -3,7 +3,7 @@ using System.Windows.Forms;
 
 namespace SPBU12._1MANAGER
 {
-    class ListElements
+    public class ListElements
     {
         public List<ListViewItem> list;
         string path;

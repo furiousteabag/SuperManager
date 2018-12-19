@@ -12,16 +12,8 @@ namespace SPBU12._1MANAGER
         {
             InitializeComponent();
 
-            label1.Text = text;
-            rootTo = root;
-
-            comboBox1.Items.Add(rootTo);
-            comboBox1.Text = comboBox1.Items[0].ToString();
-            var directories = FolderMethods.GetDirectoryInfos(rootTo);
-            foreach (var info in directories)
-            {
-                comboBox1.Items.Add(rootTo + Entity.GetDirectorySeparatorChar() + info.Name);
-            }
+            label1.Text = text;         
+            label2.Text = root;
         }
 
         //public string Root {

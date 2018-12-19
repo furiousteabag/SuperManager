@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace SPBU12._1MANAGER
 {
@@ -19,13 +14,10 @@ namespace SPBU12._1MANAGER
            string sOutputFilename,
            string sKey)
         {
-            FileStream fsInput = new FileStream(sInputFilename,
-               FileMode.Open,
-               FileAccess.Read);
 
-            FileStream fsEncrypted = new FileStream(sOutputFilename,
-               FileMode.Create,
-               FileAccess.Write);
+            var fsInput = FileMethods.GetFileStream1(sInputFilename);
+            var fsEncrypted = FileMethods.GetFileStream2(sOutputFilename);
+
             DESCryptoServiceProvider DES = new DESCryptoServiceProvider();
             DES.Key = ASCIIEncoding.ASCII.GetBytes(sKey);
             DES.IV = ASCIIEncoding.ASCII.GetBytes(sKey);
@@ -49,14 +41,13 @@ namespace SPBU12._1MANAGER
             DESCryptoServiceProvider DES = new DESCryptoServiceProvider();
             //A 64 bit key and IV is required for this provider.
             //Set secret key For DES algorithm.
-                DES.Key = ASCIIEncoding.ASCII.GetBytes(sKey);
-                //Set initialization vector.
-                DES.IV = ASCIIEncoding.ASCII.GetBytes(sKey);
+            DES.Key = ASCIIEncoding.ASCII.GetBytes(sKey);
+            //Set initialization vector.
+            DES.IV = ASCIIEncoding.ASCII.GetBytes(sKey);
 
-                //Create a file stream to read the encrypted file back.
-                FileStream fsread = new FileStream(sInputFilename,
-               FileMode.Open,
-               FileAccess.Read);
+            //Create a file stream to read the encrypted file back.
+            var fsread = FileMethods.GetFileStream1(sInputFilename);
+
             //Create a DES decryptor from the DES instance.
             ICryptoTransform desdecrypt = DES.CreateDecryptor();
             //Create crypto stream set to read and do a 
@@ -65,29 +56,12 @@ namespace SPBU12._1MANAGER
                desdecrypt,
                CryptoStreamMode.Read);
             //Print the contents of the decrypted file.
-            StreamWriter fsDecrypted = new StreamWriter(sOutputFilename);
-            fsDecrypted.Write(new StreamReader(cryptostreamDecr).ReadToEnd());
+            var fsDecrypted = FileMethods.GetStreamWriter(sOutputFilename);
+            fsDecrypted.Write(FileMethods.GetStreamReader(cryptostreamDecr).ReadToEnd());
             fsDecrypted.Flush();
             fsDecrypted.Close();
             fsread.Close();
             cryptostreamDecr.Close();
         }
-
-        //static void Main()
-        //{
-        //    // Must be 64 bits, 8 bytes.
-        //    // Distribute this key to the user who will decrypt this file.
-        //    string sSecretKey = "";
-
-        //    // Encrypt the file.        
-        //    EncryptFile(@"C:\MyData.txt",
-        //       @"C:\Encrypted.txt",
-        //       sSecretKey);
-
-        //    // Decrypt the file.
-        //    DecryptFile(@"C:\Encrypted.txt",
-        //       @"C:\Decrypted.txt",
-        //       sSecretKey);
-        //}
     }
 }

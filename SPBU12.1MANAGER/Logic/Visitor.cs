@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace SPBU12._1MANAGER
@@ -40,8 +35,7 @@ namespace SPBU12._1MANAGER
             string allFiles = "";
 
             // Getting the list of all files.
-            DirectoryInfo di = new DirectoryInfo(folderpath);
-            FileInfo[] files = di.GetFiles("*", SearchOption.AllDirectories);
+            var files = FileMethods.GetFileInfosForSearch(folderpath);
 
             // Making big string of filenames to take hash from it.
             foreach (var info in files)
@@ -71,25 +65,29 @@ namespace SPBU12._1MANAGER
             // Getting the cypher key.
             using (CypherKeyBox cypherKeyBox = new CypherKeyBox())
             {
+
+                // If clicked OK button.
                 if (cypherKeyBox.ShowDialog() == DialogResult.OK)
                 {
                     key = cypherKeyBox.GetKeyString;
+
+                    // Encrypting file.
+                    CypherFile.EncryptFile(filepath, filepath + "_cyphered", key);
+
+                    // Delete the original file.
+                    FileMethods.DeleteFile(filepath);
+
+                    // We're done.
+                    MessageBox.Show(
+                                "Сyphering file: done",
+                                "Сyphering",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                                           );
                 }
             }
 
-            // Encrypting file.
-            CypherFile.EncryptFile(filepath, filepath + "_cyphered", key);
-
-            // Delete the original file.
-            File.Delete(filepath);
-
-            // We're done.
-            MessageBox.Show(
-                        "Сyphering file: done",
-                        "Сyphering",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                                   );
+           
         }
 
         // Visiting folder.
@@ -102,30 +100,32 @@ namespace SPBU12._1MANAGER
             // Getting the cypher key.
             using (CypherKeyBox cypherKeyBox = new CypherKeyBox())
             {
+                // If clicked OK button.
                 if (cypherKeyBox.ShowDialog() == DialogResult.OK)
                 {
                     key = cypherKeyBox.GetKeyString;
+
+                    // Getting the list of files.
+                    var files = FileMethods.GetFileInfosForSearch(folderpath);
+
+                    // Encrypting each file and deleting the original one.
+                    foreach (var info in files)
+                    {
+                        CypherFile.EncryptFile(info.FullName, info.FullName + "_cyphered", key);
+                        FileMethods.DeleteFile(info.FullName);
+                    }
+
+                    // We're done.
+                    MessageBox.Show(
+                                "Сyphering folder: done",
+                                "Сyphering",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                                           );
                 }
             }
 
-            // Getting the list of files.
-            DirectoryInfo di = new DirectoryInfo(folderpath);
-            FileInfo[] files = di.GetFiles("*", SearchOption.AllDirectories);
-
-            // Encrypting each file and deleting the original one.
-            foreach (var info in files)
-            {
-                CypherFile.EncryptFile(info.FullName, info.FullName + "_cyphered", key);
-                File.Delete(info.FullName);
-            }
-
-            // We're done.
-            MessageBox.Show(
-                        "Сyphering folder: done",
-                        "Сyphering",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                                   );
+            
         }
     }
 
@@ -141,25 +141,28 @@ namespace SPBU12._1MANAGER
             // Getting the cypher key.
             using (CypherKeyBox cypherKeyBox = new CypherKeyBox())
             {
+                // If clicked OK button.
                 if (cypherKeyBox.ShowDialog() == DialogResult.OK)
                 {
                     key = cypherKeyBox.GetKeyString;
+
+                    // Decrypt file.
+                    CypherFile.DecryptFile(filepath, filepath.Substring(0, filepath.Length - 9), key);
+
+                    // Delete encrypted file.
+                    FileMethods.DeleteFile(filepath);
+
+                    // We're done.
+                    MessageBox.Show(
+                                "De-Сyphering file: done",
+                                "De-Сyphering",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                                           );
                 }
             }
 
-            // Decrypt file.
-            CypherFile.DecryptFile(filepath, filepath.Substring(0, filepath.Length - 9), key);
-
-            // Delete encrypted file.
-            File.Delete(filepath);
-
-            // We're done.
-            MessageBox.Show(
-                        "De-Сyphering file: done",
-                        "De-Сyphering",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                                   );
+            
         }
 
         // Visiting folder.
@@ -173,30 +176,32 @@ namespace SPBU12._1MANAGER
             // Getting the cypher key.
             using (CypherKeyBox cypherKeyBox = new CypherKeyBox())
             {
+                // If clicked OK button.
                 if (cypherKeyBox.ShowDialog() == DialogResult.OK)
                 {
                     key = cypherKeyBox.GetKeyString;
+
+                    // Getting the list of files in directory.
+                    var files = FileMethods.GetFileInfosForSearch(folderpath);
+
+                    // Decrypting each file and deleting the encrypted ones.
+                    foreach (var info in files)
+                    {
+                        CypherFile.DecryptFile(info.FullName, info.FullName.Substring(0, info.FullName.Length - 9), key);
+                        FileMethods.DeleteFile(info.FullName);
+                    }
+
+                    // We're done.
+                    MessageBox.Show(
+                                "De-Сyphering folder: done",
+                                "De-Сyphering",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information
+                                           );
                 }
             }
 
-            // Getting the list of files in directory.
-            DirectoryInfo di = new DirectoryInfo(folderpath);
-            FileInfo[] files = di.GetFiles("*", SearchOption.AllDirectories);
-
-            // Decrypting each file and deleting the encrypted ones.
-            foreach (var info in files)
-            {
-                CypherFile.DecryptFile(info.FullName, info.FullName.Substring(0, info.FullName.Length - 9), key);
-                File.Delete(info.FullName);
-            }
-
-            // We're done.
-            MessageBox.Show(
-                        "De-Сyphering folder: done",
-                        "De-Сyphering",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                                   );
+            
         }
     }
 }

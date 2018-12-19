@@ -80,7 +80,8 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Name = "CypherKeyBox";
-            this.Text = "CypherKeyBox";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.Text = "Cypher Key";
             this.ResumeLayout(false);
             this.PerformLayout();
 
