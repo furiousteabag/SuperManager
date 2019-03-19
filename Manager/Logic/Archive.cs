@@ -18,14 +18,15 @@ namespace SPBU12._1MANAGER
                 Parallel.ForEach(FileMethods.GetFileInfos(path), (currentFile) =>
                 {
                     string pathFile = currentFile.FullName;
-                    string compressfile = path + "_archived" + "\\" + currentFile.ToString() + ".zip";
+                    // string compressfile = path + "_archived" + "\\" + currentFile.ToString() + "_ZIP";
+                    string compressfile = path + "_archived" + "\\" + currentFile.ToString() + "_ZIP";
                     CompressFile(pathFile, compressfile);
                 });
             }
             //If we got a file
             else
             {              
-                CompressFile(path + ".txt", FolderMethods.GetName(path) + "\\" + FileMethods.GetName(path) + ".txt" + ".zip");
+                CompressFile(path + ".txt", FolderMethods.GetName(path) + "\\" + FileMethods.GetName(path) + ".txt" + "_ZIP");
             }
         }
 

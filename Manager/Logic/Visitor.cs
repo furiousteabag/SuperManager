@@ -9,6 +9,8 @@ namespace SPBU12._1MANAGER
     {
         void Visit(FileMethods p);
         void Visit(FolderMethods p);
+        void Visit(ZippedFile zippedFile);
+        void Visit(ZippedFolder zippedFolder);
     }
 
     // MD5 visitor.
@@ -50,6 +52,14 @@ namespace SPBU12._1MANAGER
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information
                                    );
+        }
+        // Visiting file.
+        public void Visit(ZippedFile p)
+        {
+        }
+        // Visiting file.
+        public void Visit(ZippedFolder p)
+        {
         }
     }
 
@@ -127,6 +137,14 @@ namespace SPBU12._1MANAGER
 
             
         }
+        // Visiting file.
+        public void Visit(ZippedFile p)
+        {
+        }
+        // Visiting file.
+        public void Visit(ZippedFolder p)
+        {
+        }
     }
 
     // De-Cypher visitor.
@@ -202,6 +220,14 @@ namespace SPBU12._1MANAGER
             }
 
             
+        }
+        // Visiting file.
+        public void Visit(ZippedFile p)
+        {
+        }
+        // Visiting file.
+        public void Visit(ZippedFolder p)
+        {
         }
     }
 }

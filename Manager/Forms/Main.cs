@@ -63,6 +63,7 @@ namespace SPBU12._1MANAGER
         public event FileSystemEventHandler UpdateLeft_interface;
         public event FileSystemEventHandler UpdateRight_interface;
         public event KeyEventHandler File_Statistics_interface;
+        public event EventHandler saveSettingsToolStripMenuItem_Click_interface;
 
         // Form initialization.
         public Main()
@@ -104,6 +105,8 @@ namespace SPBU12._1MANAGER
             // Current form - left form.
             lwOnline = listView1;
         }
+
+
 
         // Return path of listView.
         public string PathOfListView(ListView lw)
@@ -196,8 +199,7 @@ namespace SPBU12._1MANAGER
         }
 
 
-
-        delegate DriveInfo Disk();
+        
 
         //Меняет имя пути в правом или левом окне
         public void PathName(string name, bool left)
@@ -251,6 +253,26 @@ namespace SPBU12._1MANAGER
             buttonRightRoot_Click_interface(sender, e);
         }
 
+        ////Переместить элемент
+        //private void MoveElement(ListView lw, string el)
+        //{
+        //    Entity.CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), el);
+        //    Entity.DeleteElement(PathOfListView(lw), el);
+        //}
+
+        ////Переместить файлы
+        //private void MoveF()
+        //{
+        //    var lw = WhichListView();
+        //    if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Rename/move " + lw.SelectedItems.Count + " file(s) to:"))
+        //    {
+        //        foreach (ListViewItem item in lw.SelectedItems)
+        //        {
+        //            MoveElement(lw, item.Text + item.SubItems[1].Text);
+        //        }
+        //    }
+        //}
+        
 
 
 
@@ -262,63 +284,9 @@ namespace SPBU12._1MANAGER
 
 
 
-        //Вывод окна копирования
-        private bool ShowWindCopy(string root, string label)
-        {
-            CopyBox cb = new CopyBox(root, label);
-            cb.Font = data.dialogFont;
-            if (cb.ShowDialog() == DialogResult.OK)
-                return true;
-            return false;
-        }
 
-        //Вывод окна загрузки
-        private void ShowWindDownload()
-        {
-            DownloadBox cb = new DownloadBox();
-            cb.Font = data.dialogFont;
-            cb.Show();
 
-        }
-
-        //Вывод окна поиска файлов
-        private void ShowWindSearch()
-        {
-            SearchBox cb = new SearchBox();
-            cb.Font = data.dialogFont;
-            cb.Show();
-
-        }
-
-        //Окно удаления
-        private bool ShowWindDelete(int k)
-        {
-            if (MessageBox.Show("Do you really want to delete " + k + " file(s)?", "Custom file manager", MessageBoxButtons.OKCancel, MessageBoxIcon.Stop) == DialogResult.OK)
-                return true;
-            return false;
-        }
-
-        //Скопировать элемент
-        private void CopyFileOrFolder(string startDirectory, string endDirectory, string item)
-        {
-            if (FileMethods.IfExist(startDirectory + Entity.GetDirectorySeparatorChar() + item))
-                FolderMethods.CopyDir(startDirectory + Entity.GetDirectorySeparatorChar() + item.Substring(1).Remove(item.Length - 2), endDirectory);
-            else
-                FileMethods.CopyFile(item, startDirectory, endDirectory);
-        }
-
-        //Скопировать файлы
-        private void IsCopy()
-        {
-            var lw = WhichListView();
-            if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Copy " + lw.SelectedItems.Count + " file(s) to:"))
-            {
-                foreach (ListViewItem file in lw.SelectedItems)
-                {
-                    CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), file.Text + file.SubItems[1].Text);
-                }
-            }
-        }
+        
 
 
 
@@ -326,53 +294,16 @@ namespace SPBU12._1MANAGER
 
 
 
-        //Переместить элемент
-        private void MoveElement(ListView lw, string el)
-        {
-            CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), el);
-            Entity.DeleteElement(PathOfListView(lw), el);
-        }
-
-        //Переместить файлы
-        private void MoveF()
-        {
-            var lw = WhichListView();
-            if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Rename/move " + lw.SelectedItems.Count + " file(s) to:"))
-            {
-                foreach (ListViewItem item in lw.SelectedItems)
-                {
-                    MoveElement(lw, item.Text + item.SubItems[1].Text);
-                }
-            }
-        }
 
 
 
 
 
-        //Удалить несколько выбранных элементов
-        private void Delete()
-        {
-            var lw = WhichListView();
-            if (ShowWindDelete(lw.SelectedItems.Count))
-            {
-                foreach (ListViewItem item in lw.SelectedItems)
-                {
-                    string name = item.Text + item.SubItems[1].Text;
-                    Entity.DeleteElement(PathOfListView(lw), name);
-                }
-            }
-        }
 
 
 
 
 
-        //Закрыть программу
-        private void Exit()
-        {
-            Application.Exit();
-        }
 
         //Выбрано ли что-нибудь
         private bool IsSelected()
@@ -416,36 +347,40 @@ namespace SPBU12._1MANAGER
             }
         }
 
-        //Сохранить настройки
-        private void Save()
-        {
-            BinaryFormatter binFormat = new BinaryFormatter();
-            Stream fStream = new FileStream(rootUser, FileMode.Create, FileAccess.Write, FileShare.None);
-            binFormat.Serialize(fStream, data);
-            fStream.Close();
-        }
+
 
         //Закрытие формы
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Save();
+            saveSettingsToolStripMenuItem_Click_interface(sender, e);
         }
 
 
 
         //ОБРАБОТКА СОЧЕТАНИЙ КЛАВИШ И ОБЫЧНЫХ НАЖАТИЙ
 
-        // Search patterns button
-        private void findToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (IsSelected())
-            {
-                ListViewItem selectFile = WhichListView().SelectedItems[0];
-                string fName = PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text;
-                string dName = PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text.Substring(1).Remove(selectFile.Text.Length - 2);
-                (new SearchPatternsParallels(new SearchHandler())).Search(fName, dName);
-            }
-        }
+        //// Search patterns button
+        //private void findToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    if (IsSelected())
+        //    {
+        //        ListViewItem selectFile = WhichListView().SelectedItems[0];
+        //        FileInfo fileInfo = new FileInfo(selectFile.Text);
+        //        string fName = PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text;
+        //        string dName = PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + selectFile.Text.Substring(1).Remove(selectFile.Text.Length - 2);
+
+        //        // File path (if exists).
+        //        DirectoryInfo di = new DirectoryInfo(PathOfListView(WhichListView()));
+        //        FileInfo[] smFiles = di.GetFiles(selectFile.Text + "*");
+        //        string pathfile = "";
+        //        if (smFiles.Count() > 0)
+        //        {
+        //            pathfile = smFiles[0].FullName;
+        //        }
+
+        //        (new SearchPatternsParallels(new SearchHandler())).Search(pathfile, dName);
+        //    }
+        //}
 
         //Сочетания
         private void Main_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
@@ -472,26 +407,26 @@ namespace SPBU12._1MANAGER
                     comboBox2.Focus();
                     comboBox2.DroppedDown = true;
                 }
-                //Pack button
-                else if (e.Alt && e.KeyCode == Keys.F5)
-                {
-                    if (IsSelectedOne())
-                    {
-                        ArchiveFile file = new ArchiveFile();
+                ////Pack button
+                //else if (e.Alt && e.KeyCode == Keys.F5)
+                //{
+                //    if (IsSelectedOne())
+                //    {
+                //        ArchiveFile file = new ArchiveFile();
 
-                        // A path of file to pack
-                        var lw = WhichListView();
-                        ListViewItem fileChosen = lw.SelectedItems[0];
-                        string path = PathOfListView(WhichListView()) + Entity.GetDirectorySeparatorChar() + fileChosen.Text;
+                //        // A path of file to pack
+                //        var lw = WhichListView();
+                //        ListViewItem fileChosen = lw.SelectedItems[0];
+                //        string path = PathOfListView(WhichListView()) + Entity.GetDirectorySeparatorChar() + fileChosen.Text;
 
-                        file.Pack(path);
-                    }
-                }
-                else if (e.Alt && e.KeyCode == Keys.F6)
-                {
-                    if (IsSelectedOne())
-                        Unpack();
-                }
+                //        file.Pack(path);
+                //    }
+                //}
+                //else if (e.Alt && e.KeyCode == Keys.F6)
+                //{
+                //    if (IsSelectedOne()) { }
+                //    //  Unpack();
+                //}
                 else if (e.KeyCode == Keys.F1)
                 {
                     helpToolStripMenuItem_Click_interface(sender, e);
@@ -501,20 +436,31 @@ namespace SPBU12._1MANAGER
                     if (IsSelected())
                         UpdateListView(WhichListView());
                 }
-                else if (e.KeyCode == Keys.F5)
-                {
-                    if (IsSelected())
-                        IsCopy();
-                }
-                else if (e.KeyCode == Keys.F6)
-                {
-                    if (IsSelected())
-                        MoveF();
-                }
+                //else if (e.KeyCode == Keys.F5)
+                //{
+                //    if (IsSelected())
+                //        ShowCopy();
+                //}
+                //else if (e.KeyCode == Keys.F6)
+                //{
+                //    if (IsSelected()) { }
+                //    // MoveF();
+                //}
                 else if (e.KeyCode == Keys.Delete)
                 {
                     if (IsSelected())
-                        Delete();
+                    {
+                        var lw = WhichListView();
+                        if (ShowWindDelete(lw.SelectedItems.Count))
+                        {
+                            foreach (ListViewItem item in lw.SelectedItems)
+                            {
+                                string name = item.Text + item.SubItems[1].Text;
+                                Presenter.Delete(PathOfListView(lw), name);
+                            }
+                        }
+                    }
+
                 }
                 else if (e.KeyCode == Keys.F7)
                 {
@@ -527,7 +473,7 @@ namespace SPBU12._1MANAGER
                         txtStatisticsFilePath = filePath;
                         File_Statistics_interface(sender, e);
                     }
-                    
+
                 }
                 else if (e.KeyCode == Keys.F8)
                 {
@@ -537,9 +483,11 @@ namespace SPBU12._1MANAGER
                     // Folder path.
                     string path = (PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
 
-                    // File path (if exists).
-                    DirectoryInfo di = new DirectoryInfo(PathOfListView(WhichListView()));
-                    FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
+                    //// File path (if exists).
+                    //DirectoryInfo di = new DirectoryInfo(PathOfListView(WhichListView()));
+                    //FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
+
+                    var smFiles = FolderMethods.GetR(PathOfListView(WhichListView()), fileChosen.Text + "*");
                     string pathfile = "";
                     if (smFiles.Count() > 0)
                     {
@@ -574,8 +522,9 @@ namespace SPBU12._1MANAGER
                     string path = (PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
 
                     // File path (if exists).
-                    DirectoryInfo di = new DirectoryInfo(PathOfListView(WhichListView()));
-                    FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
+                    //DirectoryInfo di = new DirectoryInfo(PathOfListView(WhichListView()));
+                    //FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
+                    var smFiles = FolderMethods.GetR(PathOfListView(WhichListView()), fileChosen.Text + "*");
                     string pathfile = "";
                     if (smFiles.Count() > 0)
                     {
@@ -610,8 +559,7 @@ namespace SPBU12._1MANAGER
                     string path = (PathOfListView(WhichListView()) + Path.DirectorySeparatorChar + fileChosen.Text).Replace("[", "").Replace("]", "");
 
                     // File path (if exists).
-                    DirectoryInfo di = new DirectoryInfo(PathOfListView(WhichListView()));
-                    FileInfo[] smFiles = di.GetFiles(fileChosen.Text + "*");
+                    var smFiles = FolderMethods.GetR(PathOfListView(WhichListView()), fileChosen.Text + "*");
                     string pathfile = "";
                     if (smFiles.Count() > 0)
                     {
@@ -667,20 +615,32 @@ namespace SPBU12._1MANAGER
         //Переместить
         private void move_Click(object sender, EventArgs e)
         {
-            if (IsSelected())
-                MoveF();
+            if (IsSelected()) { }
+            //MoveF();
         }
-        //Cкопировать
-        private void copy_Click(object sender, EventArgs e)
-        {
-            if (IsSelected())
-                IsCopy();
-        }
+        ////Cкопировать
+        //private void copy_Click(object sender, EventArgs e)
+        //{
+        //    if (IsSelected())
+        //        ShowCopy();
+        //}
         //Удалить
         private void delete_Click(object sender, EventArgs e)
         {
             if (IsSelected())
-                Delete();
+            {
+                var lw = WhichListView();
+                if (ShowWindDelete(lw.SelectedItems.Count))
+                {
+                    foreach (ListViewItem item in lw.SelectedItems)
+                    {
+                        string name = item.Text + item.SubItems[1].Text;
+                        Presenter.Delete(PathOfListView(lw), name);
+                    }
+                }
+
+            }
+
         }
         //Обработка кнопки help
         private void helpToolStripMenuItem_Click(object sender, EventArgs e)
@@ -688,38 +648,38 @@ namespace SPBU12._1MANAGER
             helpToolStripMenuItem_Click_interface(sender, e);
         }
 
-        //Обработка кнопки разархивации
-        private void unpackToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (IsSelectedOne())
-                Unpack();
-        }
+        ////Обработка кнопки разархивации
+        //private void unpackToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    if (IsSelectedOne())
+        //        Unpack();
+        //}
 
-        //Обработка кнопки options
-        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Configuration conf = new Configuration(data.fontColor, data.color1, data.color2, data.fileFont, data.mainFont, data.dialogFont);
-            conf.Font = data.dialogFont;
-            DialogResult res = conf.ShowDialog();
+        ////Обработка кнопки options
+        //private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+        //{
+        //    Configuration conf = new Configuration(data.fontColor, data.color1, data.color2, data.fileFont, data.mainFont, data.dialogFont);
+        //    conf.Font = data.dialogFont;
+        //    DialogResult res = conf.ShowDialog();
 
-            if (res == DialogResult.OK)
-            {
-                data.fontColor = conf.FontColor();
-                data.color1 = conf.Color1();
-                data.color2 = conf.Color2();
-                data.fileFont = conf.FileFont();
-                data.mainFont = conf.MainFont();
-                data.dialogFont = conf.DialogFont();
+        //    if (res == DialogResult.OK)
+        //    {
+        //        data.fontColor = conf.FontColor();
+        //        data.color1 = conf.Color1();
+        //        data.color2 = conf.Color2();
+        //        data.fileFont = conf.FileFont();
+        //        data.mainFont = conf.MainFont();
+        //        data.dialogFont = conf.DialogFont();
 
-                this.Font = data.mainFont;
-                listView1.BackColor = data.color1;
-                listView2.BackColor = data.color1;
-                listView1.Font = data.fileFont;
-                listView2.Font = data.fileFont;
-                UpdateListView(listView1);
-                UpdateListView(listView2);
-            }
-        }
+        //        this.Font = data.mainFont;
+        //        listView1.BackColor = data.color1;
+        //        listView2.BackColor = data.color1;
+        //        listView1.Font = data.fileFont;
+        //        listView2.Font = data.fileFont;
+        //        UpdateListView(listView1);
+        //        UpdateListView(listView2);
+        //    }
+        //}
         //Обработка кнопки поиска файла
         private void searchFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -728,35 +688,55 @@ namespace SPBU12._1MANAGER
         //Обработка кнопки сохранения
         private void saveSettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Save();
+            saveSettingsToolStripMenuItem_Click_interface(sender, e);
         }
         //Обработка кнопки закрытия
         private void quitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Exit();
+            Application.Exit();
         }
 
+        /*
+         * Show windows.
+         */
 
-        //Разархивация
-        private void Unpack()
+        //Вывод окна копирования
+        private bool ShowWindCopy(string root, string label)
         {
-            var lw = WhichListView();
-            ListViewItem file = lw.SelectedItems[0];
-            if (file.SubItems[1].Text != ".zip")
-            {
-                MessageBox.Show(
-                       "Operation Cancelled: not *.zip file.",
-                       "Unpack status",
-                       MessageBoxButtons.OK,
-                       MessageBoxIcon.Error
-                                  );
-                return;
-            }
-            string path = PathOfListView(lw) + Path.DirectorySeparatorChar + file.Text + file.SubItems[1].Text;
-            FolderMethods.Unzip(path, path.Substring(0, path.Length - 4));
+            CopyBox cb = new CopyBox(root, label);
+            cb.Font = data.dialogFont;
+            if (cb.ShowDialog() == DialogResult.OK)
+                return true;
+            return false;
         }
 
-        
+        //Вывод окна загрузки
+        private void ShowWindDownload()
+        {
+            DownloadBox cb = new DownloadBox();
+            cb.Font = data.dialogFont;
+            cb.Show();
+
+        }
+
+        //Вывод окна поиска файлов
+        private void ShowWindSearch()
+        {
+            SearchBox cb = new SearchBox();
+            cb.Font = data.dialogFont;
+            cb.Show();
+
+        }
+
+        //Окно удаления
+        private bool ShowWindDelete(int k)
+        {
+            if (MessageBox.Show("Do you really want to delete " + k + " file(s)?", "Custom file manager", MessageBoxButtons.OKCancel, MessageBoxIcon.Stop) == DialogResult.OK)
+                return true;
+            return false;
+        }
+
+
 
         /*
          * 
@@ -856,7 +836,38 @@ namespace SPBU12._1MANAGER
             isChanged2 = false;
         }
 
+        ////Разархивация
+        //private void Unpack()
+        //{
+        //    var lw = WhichListView();
+        //    ListViewItem file = lw.SelectedItems[0];
+        //    if (file.SubItems[1].Text != ".zip")
+        //    {
+        //        MessageBox.Show(
+        //               "Operation Cancelled: not *.zip file.",
+        //               "Unpack status",
+        //               MessageBoxButtons.OK,
+        //               MessageBoxIcon.Error
+        //                          );
+        //        return;
+        //    }
+        //    string path = PathOfListView(lw) + Entity.GetDirectorySeparatorChar() + file.Text + file.SubItems[1].Text;
+        //    FolderMethods.Unzip(path, path.Substring(0, path.Length - 4));
+        //}
+
     }
 
 
 }
+//// Method to copy (cannot move because of showwind)
+//private void ShowCopy()
+//{
+//    var lw = WhichListView();
+//    if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Copy " + lw.SelectedItems.Count + " file(s) to:"))
+//    {
+//        foreach (ListViewItem file in lw.SelectedItems)
+//        {
+//            Entity.CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), file.Text + file.SubItems[1].Text);
+//        }
+//    }
+//}

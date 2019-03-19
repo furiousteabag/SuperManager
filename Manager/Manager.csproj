@@ -50,6 +50,9 @@
     <Reference Include="DotNetZip, Version=1.13.0.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
       <HintPath>..\packages\DotNetZip.1.13.0\lib\net40\DotNetZip.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=1.0.0.999, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.1.0.0\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.DirectX, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Downloads\directx\1.0.2902.0\Microsoft.DirectX.dll</HintPath>
@@ -137,6 +140,7 @@
     <Compile Include="Forms\HelpBox.Designer.cs">
       <DependentUpon>HelpBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="Logic\Factory.cs" />
     <Compile Include="Logic\ListElements.cs" />
     <Compile Include="Logic\MD5Hash.cs" />
     <Compile Include="Logic\Presenter.cs" />

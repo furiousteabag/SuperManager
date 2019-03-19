@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace SPBU12._1MANAGER
@@ -6,21 +8,21 @@ namespace SPBU12._1MANAGER
     public class ListElements
     {
         public List<ListViewItem> list;
-        string path;
+        public string path;
 
         public ListElements()
         {
             list = new List<ListViewItem>();
         }
-        
-        
+
+
         public void Update(string path)
         {
             try
             {
                 this.path = path;
                 var di = FolderMethods.GetDirectoryInfo(path);
-                
+
                 list.Clear();
 
                 FolderMethods.UpdateDirectories(di, list, path);
@@ -47,6 +49,7 @@ namespace SPBU12._1MANAGER
         {
             string name = lw.SelectedItems[0].Text;
 
+            // If folder.
             if (IsDir(name))
             {
                 if (IsBack(name))
@@ -57,6 +60,20 @@ namespace SPBU12._1MANAGER
                         path += Entity.GetDirectorySeparatorChar();
                     path += name.Remove(0, 1).Remove(name.Length - 2);
                 }
+            }
+            // If something from folder.
+            else
+            {
+                // File path (if exists).
+                DirectoryInfo di = new DirectoryInfo(path);
+                FileInfo[] smFiles = di.GetFiles(name + "*");
+                string pathfile = "";
+                if (smFiles.Count() > 0)
+                {
+                    path = smFiles[0].FullName;
+                }
+
+                
             }
 
             return path;

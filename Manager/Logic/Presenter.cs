@@ -1,12 +1,15 @@
-﻿using System;
+﻿using SPBU12._1MANAGER.Logic;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+// bober bejit na peresdu azaza
 namespace SPBU12._1MANAGER
 {
     interface IView
@@ -14,6 +17,7 @@ namespace SPBU12._1MANAGER
 
         // Elements.
         UserData data { get; set; }
+        string rootUser { get; set; }
         bool isChanged1 { get; set; }
         bool isChanged2 { get; set; }
         string txtStatisticsFilePath { get; set; }
@@ -41,6 +45,7 @@ namespace SPBU12._1MANAGER
         event EventHandler listView1_DoubleClick_interface;
         event EventHandler listView2_DoubleClick_interface;
         event KeyEventHandler File_Statistics_interface;
+        event EventHandler saveSettingsToolStripMenuItem_Click_interface;
         event FileSystemEventHandler UpdateLeft_interface;
         event FileSystemEventHandler UpdateRight_interface;
 
@@ -68,6 +73,7 @@ namespace SPBU12._1MANAGER
             view.UpdateLeft_interface += new FileSystemEventHandler(UpdateLeft);
             view.UpdateRight_interface += new FileSystemEventHandler(UpdateRight);
             view.File_Statistics_interface += new KeyEventHandler(FileStatistics);
+            view.saveSettingsToolStripMenuItem_Click_interface += new EventHandler(Save);
         }
 
         /*
@@ -155,6 +161,15 @@ namespace SPBU12._1MANAGER
             StatisticsTXT(view.txtStatisticsFilePath);
         }
 
+        //Сохранить настройки
+        private void Save(object sendler, EventArgs e)
+        {
+            BinaryFormatter binFormat = new BinaryFormatter();
+            Stream fStream = new FileStream(view.rootUser, FileMode.Create, FileAccess.Write, FileShare.None);
+            binFormat.Serialize(fStream, view.data);
+            fStream.Close();
+        }
+
         /*
          * 
          * Methods.
@@ -187,30 +202,50 @@ namespace SPBU12._1MANAGER
             ListE(lw).Update(Root(lw));
             lw.Items.Clear();
 
-            foreach (ListViewItem item in ListE(lw).list)
+
+            var c = Factory.Get(ListE(lw).path);
+            var d = new ZippedFile(ListE(lw).path);
+            if (c == d)
             {
-                lw.Items.Add(item);
-                if ((item.Index % 2) == 0)
-                    item.BackColor = view.data.color1;
-                else
-                    item.BackColor = view.data.color2;
-                item.ForeColor = view.data.fontColor;
+                ZippedFolder zippedFolder = new ZippedFolder(ListE(lw).path);
+                List<string> files = zippedFolder.GetAllFiles();
+                view.getlistView1.Items.Clear();
+                foreach (var item in files)
+                {
+                    lw.Items.Add(item);
+                }
+            }
+            else
+            {
+                foreach (ListViewItem item in ListE(lw).list)
+                {
+                    lw.Items.Add(item);
+                    if ((item.Index % 2) == 0)
+                        item.BackColor = view.data.color1;
+                    else
+                        item.BackColor = view.data.color2;
+                    item.ForeColor = view.data.fontColor;
+                }
             }
 
             TextBox tb = GetTextBoxFromListView(lw);
 
             tb.Text = Root(lw);
 
-            if (lw == view.getlistView1)
+            try
             {
-                view.watcherLeft.Path = view.rootLeft;
-                view.watcherLeft.EnableRaisingEvents = true;
+                if (lw == view.getlistView1)
+                {
+                    view.watcherLeft.Path = view.rootLeft;
+                    view.watcherLeft.EnableRaisingEvents = true;
+                }
+                else
+                {
+                    view.watcherRight.Path = view.rootRight;
+                    view.watcherRight.EnableRaisingEvents = true;
+                }
             }
-            else
-            {
-                view.watcherRight.Path = view.rootRight;
-                view.watcherRight.EnableRaisingEvents = true;
-            }
+            catch { }
         }
 
         //Какой листвью выбран
@@ -261,11 +296,32 @@ namespace SPBU12._1MANAGER
             }
             else
             {
-                Process.Start(path);
+                var c = Factory.Get(path);
+                var d = new ZippedFile(path);
+
+                if (c==d)
+                {
+
+                    if (lw == view.getlistView1)
+                        view.rootLeft = path;
+                    else
+                        view.rootRight = path;
+
+                }
+                else
+                {
+                    Process.Start(path);
+                }
+
             }
 
 
             UpdateListView(lw);
+        }
+
+        public static void Delete(string PathOfListView, string name)
+        {
+            Entity.DeleteElement(PathOfListView, name);
         }
 
         //---СТАТИСТИКА ПО ФАЙЛУ---
