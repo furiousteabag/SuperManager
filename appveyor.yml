@@ -1,5 +1,5 @@
 image: Visual Studio 2017
 
 build_script:
-    - cmd: nuget restore packages.config -PackagesDirectory Packages
+    - cmd: nuget restore
     - cmd: dotnet build
