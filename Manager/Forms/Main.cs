@@ -253,27 +253,25 @@ namespace SPBU12._1MANAGER
             buttonRightRoot_Click_interface(sender, e);
         }
 
-        ////Переместить элемент
-        //private void MoveElement(ListView lw, string el)
-        //{
-        //    Entity.CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), el);
-        //    Entity.DeleteElement(PathOfListView(lw), el);
-        //}
+        //Переместить элемент
+        private void MoveElement(ListView lw, string el)
+        {
+            Entity.CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), el);
+            Entity.DeleteElement(PathOfListView(lw), el);
+        }
 
-        ////Переместить файлы
-        //private void MoveF()
-        //{
-        //    var lw = WhichListView();
-        //    if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Rename/move " + lw.SelectedItems.Count + " file(s) to:"))
-        //    {
-        //        foreach (ListViewItem item in lw.SelectedItems)
-        //        {
-        //            MoveElement(lw, item.Text + item.SubItems[1].Text);
-        //        }
-        //    }
-        //}
-        
-
+        //Переместить файлы
+        private void MoveF()
+        {
+            var lw = WhichListView();
+            if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Rename/move " + lw.SelectedItems.Count + " file(s) to:"))
+            {
+                foreach (ListViewItem item in lw.SelectedItems)
+                {
+                    MoveElement(lw, item.Text + item.SubItems[1].Text);
+                }
+            }
+        }
 
 
 
@@ -286,7 +284,9 @@ namespace SPBU12._1MANAGER
 
 
 
-        
+
+
+
 
 
 
@@ -407,26 +407,26 @@ namespace SPBU12._1MANAGER
                     comboBox2.Focus();
                     comboBox2.DroppedDown = true;
                 }
-                ////Pack button
-                //else if (e.Alt && e.KeyCode == Keys.F5)
-                //{
-                //    if (IsSelectedOne())
-                //    {
-                //        ArchiveFile file = new ArchiveFile();
+                //Pack button
+                else if (e.Alt && e.KeyCode == Keys.F5)
+                {
+                    if (IsSelectedOne())
+                    {
+                        ArchiveFile file = new ArchiveFile();
 
-                //        // A path of file to pack
-                //        var lw = WhichListView();
-                //        ListViewItem fileChosen = lw.SelectedItems[0];
-                //        string path = PathOfListView(WhichListView()) + Entity.GetDirectorySeparatorChar() + fileChosen.Text;
+                        // A path of file to pack
+                        var lw = WhichListView();
+                        ListViewItem fileChosen = lw.SelectedItems[0];
+                        string path = PathOfListView(WhichListView()) + Entity.GetDirectorySeparatorChar() + fileChosen.Text;
 
-                //        file.Pack(path);
-                //    }
-                //}
-                //else if (e.Alt && e.KeyCode == Keys.F6)
-                //{
-                //    if (IsSelectedOne()) { }
-                //    //  Unpack();
-                //}
+                        file.Pack(path);
+                    }
+                }
+                else if (e.Alt && e.KeyCode == Keys.F6)
+                {
+                    if (IsSelectedOne()) { Unpack(); }
+                    //  Unpack();
+                }
                 else if (e.KeyCode == Keys.F1)
                 {
                     helpToolStripMenuItem_Click_interface(sender, e);
@@ -436,16 +436,21 @@ namespace SPBU12._1MANAGER
                     if (IsSelected())
                         UpdateListView(WhichListView());
                 }
-                //else if (e.KeyCode == Keys.F5)
-                //{
-                //    if (IsSelected())
-                //        ShowCopy();
-                //}
-                //else if (e.KeyCode == Keys.F6)
-                //{
-                //    if (IsSelected()) { }
-                //    // MoveF();
-                //}
+                else if (e.KeyCode == Keys.F5)
+                {
+                    if (IsSelected())
+                    {
+                        //if (WhichListView() == listView1) { ShowWindCopy(rootRight, "Copy files to:"); }
+                        //if (WhichListView() == listView2) { ShowWindCopy(rootLeft, "Copy files to:"); }
+                        ShowCopy();
+                    }
+                        
+                }
+                else if (e.KeyCode == Keys.F6)
+                {
+                    if (IsSelected()) { MoveF(); }
+                    // MoveF();
+                }
                 else if (e.KeyCode == Keys.Delete)
                 {
                     if (IsSelected())
@@ -836,38 +841,65 @@ namespace SPBU12._1MANAGER
             isChanged2 = false;
         }
 
-        ////Разархивация
-        //private void Unpack()
-        //{
-        //    var lw = WhichListView();
-        //    ListViewItem file = lw.SelectedItems[0];
-        //    if (file.SubItems[1].Text != ".zip")
-        //    {
-        //        MessageBox.Show(
-        //               "Operation Cancelled: not *.zip file.",
-        //               "Unpack status",
-        //               MessageBoxButtons.OK,
-        //               MessageBoxIcon.Error
-        //                          );
-        //        return;
-        //    }
-        //    string path = PathOfListView(lw) + Entity.GetDirectorySeparatorChar() + file.Text + file.SubItems[1].Text;
-        //    FolderMethods.Unzip(path, path.Substring(0, path.Length - 4));
-        //}
+        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Configuration conf = new Configuration(data.fontColor, data.color1, data.color2, data.fileFont, data.mainFont, data.dialogFont);
+            conf.Font = data.dialogFont;
+            DialogResult res = conf.ShowDialog();
+
+            if (res == DialogResult.OK)
+            {
+                data.fontColor = conf.FontColor();
+                data.color1 = conf.Color1();
+                data.color2 = conf.Color2();
+                data.fileFont = conf.FileFont();
+                data.mainFont = conf.MainFont();
+                data.dialogFont = conf.DialogFont();
+
+                this.Font = data.mainFont;
+                listView1.BackColor = data.color1;
+                listView2.BackColor = data.color1;
+                listView1.Font = data.fileFont;
+                listView2.Font = data.fileFont;
+                UpdateListView(listView1);
+                UpdateListView(listView2);
+            }
+        }
+
+        //Разархивация
+        private void Unpack()
+        {
+            var lw = WhichListView();
+            ListViewItem file = lw.SelectedItems[0];
+            if (file.SubItems[1].Text != ".zip")
+            {
+                MessageBox.Show(
+                       "Operation Cancelled: not *.zip file.",
+                       "Unpack status",
+                       MessageBoxButtons.OK,
+                       MessageBoxIcon.Error
+                                  );
+                return;
+            }
+            string path = PathOfListView(lw) + Entity.GetDirectorySeparatorChar() + file.Text + file.SubItems[1].Text;
+            FolderMethods.Unzip(path, path.Substring(0, path.Length - 4));
+        }
+
+
+        // Method to copy (cannot move because of showwind)
+        private void ShowCopy()
+        {
+            var lw = WhichListView();
+            if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Copy " + lw.SelectedItems.Count + " file(s) to:"))
+            {
+                foreach (ListViewItem file in lw.SelectedItems)
+                {
+                    Entity.CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), file.Text + file.SubItems[1].Text);
+                }
+            }
+        }
 
     }
-
+   
 
 }
-//// Method to copy (cannot move because of showwind)
-//private void ShowCopy()
-//{
-//    var lw = WhichListView();
-//    if (ShowWindCopy(PathOfSecondListView(PathOfListView(lw)), "Copy " + lw.SelectedItems.Count + " file(s) to:"))
-//    {
-//        foreach (ListViewItem file in lw.SelectedItems)
-//        {
-//            Entity.CopyFileOrFolder(PathOfListView(lw), PathOfSecondListView(PathOfListView(lw)), file.Text + file.SubItems[1].Text);
-//        }
-//    }
-//}

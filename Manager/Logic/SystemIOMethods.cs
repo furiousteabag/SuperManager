@@ -62,7 +62,7 @@ namespace SPBU12._1MANAGER
         //Удалить элемент
         public static void DeleteElement(string root, string name)
         {
-            if (!FileMethods.IfExist(root + Path.DirectorySeparatorChar + name))
+            if (FileMethods.IfExist(root + Path.DirectorySeparatorChar + name))
                 File.Delete(root + Path.DirectorySeparatorChar + name);
             else if (name.Contains(".zip"))
             {
@@ -79,9 +79,10 @@ namespace SPBU12._1MANAGER
         public static void CopyFileOrFolder(string startDirectory, string endDirectory, string item)
         {
             if (FileMethods.IfExist(startDirectory + Entity.GetDirectorySeparatorChar() + item))
-                FolderMethods.CopyDir(startDirectory + Entity.GetDirectorySeparatorChar() + item.Substring(1).Remove(item.Length - 2), endDirectory);
-            else
                 FileMethods.CopyFile(item, startDirectory, endDirectory);
+            else
+
+                FolderMethods.CopyDir(startDirectory + Entity.GetDirectorySeparatorChar() + item.Substring(1).Remove(item.Length - 2), endDirectory);
         }
 
 

@@ -4,4 +4,4 @@ before_build:
     - cmd: nuget restore
 
 build_script:
-    - cmd: dotnet build
+    - cmd: msbuild
