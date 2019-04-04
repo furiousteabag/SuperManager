@@ -36,8 +36,16 @@ This manager was made on programming lessons during the 2nd and 3rd semesters.
 It illustrates a bunch of programming patterns and optimization techniques.
 
 ## How it looks like
-That is how main screen looks like:
+* That is how main screen looks like:
 ![image](https://user-images.githubusercontent.com/32129186/54601313-c9cc6c00-4a4f-11e9-9c30-b0a77a95fc83.png)
+
+* You are able to search throw files using masks:
+![image](https://user-images.githubusercontent.com/32129186/55531976-d0e0b480-56b4-11e9-9cdc-7860e81d1d88.png)
+
+* Get a .txt file statistics:
+![image](https://user-images.githubusercontent.com/32129186/55532159-8b70b700-56b5-11e9-89cf-d4b2b4b89b88.png)
+
+
 
 ## What is inside
 In this section provided list of all functions of this manager:
