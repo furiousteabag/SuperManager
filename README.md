@@ -11,8 +11,8 @@
 
 <div align="center">
   <!-- Build Status -->
-  <a href="https://ci.appveyor.com/project/SmirnovAlexander/file-manager">
-    <img src="https://ci.appveyor.com/api/projects/status/t3qfpiuo0vivctb9?svg=true"
+  <a href="https://ci.appveyor.com/project/SmirnovAlexander/supermanager">
+    <img src="https://ci.appveyor.com/api/projects/status/jpe11qr1qpbt651i?svg=true"
       alt="Build Status" />
   </a>
 </div>
